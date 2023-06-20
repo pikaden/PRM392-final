@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "529590487648",
+    "project_id": "bisto-chat-5c9c3",
+    "storage_bucket": "bisto-chat-5c9c3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:529590487648:android:4a41f8918a79ecd0d59105",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "529590487648-rsdt54v74li4tr2rb1c3nkjtgd3hdtqg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCszH1EI4Y2VorwiZ6AxgWuhzBBaZH7OGg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "529590487648-rsdt54v74li4tr2rb1c3nkjtgd3hdtqg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
