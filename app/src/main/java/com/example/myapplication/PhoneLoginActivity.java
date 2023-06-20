@@ -1,7 +1,5 @@
 package com.example.myapplication;
 
-import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -11,6 +9,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -36,9 +35,9 @@ public class PhoneLoginActivity extends AppCompatActivity {
     private PhoneAuthProvider.ForceResendingToken mResendToken;
     private FirebaseAuth mAuth;
     private ProgressBar progressBar;
+    private TextView phoneNumberCode;
     private RelativeLayout layout;
 
-    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,32 +47,35 @@ public class PhoneLoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
 
-        SendVerificationCodeButton = (Button) findViewById(R.id.send_ver_code_button);
+        SendVerificationCodeButton = findViewById(R.id.send_ver_code_button);
 
-        VerifyButton = (Button) findViewById(R.id.verify_button);
+        VerifyButton = findViewById(R.id.verify_button);
 
-        InputPhoneNumber = (EditText) findViewById(R.id.phone_number_input);
+        phoneNumberCode = findViewById(R.id.phoneNumberCode);
 
-        InputVerificationCode = (EditText) findViewById(R.id.verification_code_input);
+        InputPhoneNumber = findViewById(R.id.phone_number_input);
+
+        InputVerificationCode = findViewById(R.id.verification_code_input);
 
         layout = findViewById(R.id.rootView);
         progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleLarge);
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
         params.addRule(RelativeLayout.CENTER_IN_PARENT);
+        progressBar.setVisibility(View.GONE);
         layout.addView(progressBar, params);
 
         SendVerificationCodeButton.setOnClickListener(view -> {
 
-            // phone number in VN only!
-            String phoneNumber = "+84" + InputPhoneNumber.getText().toString();
+            // use fiction number only
+            String phoneNumber = "+1" + InputPhoneNumber.getText().toString();
 
             if (TextUtils.isEmpty(phoneNumber)) {
                 Toast.makeText(PhoneLoginActivity.this, "Please Enter Phone Number", Toast.LENGTH_SHORT).show();
             } else {
                 progressBar.setVisibility(View.VISIBLE);
-                // disable user interaction
-                getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+//                // disable user interaction
+//                getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+//                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
                 PhoneAuthOptions options = PhoneAuthOptions.newBuilder(mAuth)
                         .setPhoneNumber(phoneNumber)    // Phone number to verify
@@ -90,7 +92,7 @@ public class PhoneLoginActivity extends AppCompatActivity {
 
         VerifyButton.setOnClickListener(view -> {
             SendVerificationCodeButton.setVisibility(View.INVISIBLE);
-
+            phoneNumberCode.setVisibility(View.INVISIBLE);
             InputPhoneNumber.setVisibility(View.INVISIBLE);
 
             String verificationCode = InputVerificationCode.getText().toString();
@@ -98,9 +100,6 @@ public class PhoneLoginActivity extends AppCompatActivity {
                 Toast.makeText(PhoneLoginActivity.this, "Please Write Verification Code", Toast.LENGTH_SHORT).show();
             } else {
                 progressBar.setVisibility(View.VISIBLE);
-                // disable user interaction
-                getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
                 PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId, verificationCode);
                 signInWithPhoneAuthCredential(credential);
@@ -144,7 +143,7 @@ public class PhoneLoginActivity extends AppCompatActivity {
                 Toast.makeText(PhoneLoginActivity.this, "Code Has Been Sent", Toast.LENGTH_SHORT).show();
 
                 SendVerificationCodeButton.setVisibility(View.INVISIBLE);
-
+                phoneNumberCode.setVisibility(View.INVISIBLE);
                 InputPhoneNumber.setVisibility(View.INVISIBLE);
 
                 VerifyButton.setVisibility(View.VISIBLE);
