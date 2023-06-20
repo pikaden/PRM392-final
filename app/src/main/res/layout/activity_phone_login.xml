@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:layout_centerInParent="true"
     android:background="#4F4F4F"
+    android:id="@+id/rootView"
     tools:context=".PhoneLoginActivity">
 
     <TextView
@@ -31,7 +32,7 @@
             android:layout_marginStart="17dp"
             android:layout_marginLeft="17dp"
             android:layout_marginTop="100dp"
-            android:text="+91"
+            android:text="+84"
             android:textColor="@android:color/white"
             android:textSize="17sp" />
 
