@@ -18,10 +18,10 @@ public class about extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
 
-        Button phone = (Button)findViewById(R.id.phonecall);
-        Button email = (Button)findViewById(R.id.email);
+        Button phone = (Button) findViewById(R.id.phonecall);
+        Button email = (Button) findViewById(R.id.email);
 
-        mToolbar=(Toolbar)findViewById(R.id.about_toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.about_toolbar);
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -41,7 +41,7 @@ public class about extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
-                emailIntent.setData(Uri.parse("mailto:abhi.yalamaddi@gmail.com"));
+                emailIntent.setData(Uri.parse("mailto:phamngocnhan8@gmail.com"));
                 startActivity(Intent.createChooser(emailIntent, "feedback"));
             }
         });

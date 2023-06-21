@@ -4,15 +4,15 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 
+// TODO: switch to ViewPager2 and androidx.viewpager2.adapter.FragmentStateAdapter
 public class TabsAccessorAdapter extends FragmentStatePagerAdapter {
     public TabsAccessorAdapter(FragmentManager fm) {
         super(fm);
     }
 
+    // 4 screen in app when logged in
     @Override
     public Fragment getItem(int i) {
-
-
 
         switch (i)
         {

@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.myapplication.Activity.Login;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,6 +6,7 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.myapplication.R;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
@@ -19,7 +20,7 @@ public class LoginActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-        PhoneLoginButton = (Button) findViewById(R.id.phone_login_button);
+        PhoneLoginButton = findViewById(R.id.phone_login_button);
 
         PhoneLoginButton.setOnClickListener(v -> {
             Intent phoneLoginIntent = new Intent(LoginActivity.this, PhoneLoginActivity.class);

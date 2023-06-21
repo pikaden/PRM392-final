@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.myapplication.Activity.Login;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,6 +15,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.myapplication.MainActivity;
+import com.example.myapplication.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseException;
@@ -46,7 +48,6 @@ public class PhoneLoginActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-
         SendVerificationCodeButton = findViewById(R.id.send_ver_code_button);
 
         VerifyButton = findViewById(R.id.verify_button);
@@ -63,6 +64,10 @@ public class PhoneLoginActivity extends AppCompatActivity {
         params.addRule(RelativeLayout.CENTER_IN_PARENT);
         progressBar.setVisibility(View.GONE);
         layout.addView(progressBar, params);
+
+        // set
+        InputPhoneNumber.setText("1234567890");
+        InputVerificationCode.setText("123456");
 
         SendVerificationCodeButton.setOnClickListener(view -> {
 
@@ -161,21 +166,18 @@ public class PhoneLoginActivity extends AppCompatActivity {
 
     private void signInWithPhoneAuthCredential(PhoneAuthCredential credential) {
         mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            progressBar.setVisibility(View.GONE);
-                            // enable user interaction
-                            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        progressBar.setVisibility(View.GONE);
+                        // enable user interaction
+                        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
-                            Toast.makeText(PhoneLoginActivity.this, "Successfully Registered", Toast.LENGTH_SHORT).show();
-                            SendUserToMainActivity();
-                        } else {
-                            String message = task.getException().toString();
+                        Toast.makeText(PhoneLoginActivity.this, "Successfully Registered", Toast.LENGTH_SHORT).show();
+                        SendUserToMainActivity();
+                    } else {
+                        String message = task.getException().toString();
 
-                            Toast.makeText(PhoneLoginActivity.this, "Error :" + message, Toast.LENGTH_SHORT).show();
-                        }
+                        Toast.makeText(PhoneLoginActivity.this, "Error :" + message, Toast.LENGTH_SHORT).show();
                     }
                 });
     }

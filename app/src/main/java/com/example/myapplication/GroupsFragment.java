@@ -30,11 +30,12 @@ import java.util.Set;
  */
 public class GroupsFragment extends Fragment {
 
- private View groupfragmentView;
- private ListView list_view;
- private ArrayAdapter<String>arrayAdapter;
- private ArrayList<String>list_of_groups=new ArrayList<>();
- private DatabaseReference GroupRef;
+    private View groupfragmentView;
+    private ListView list_view;
+    private ArrayAdapter<String> arrayAdapter;
+    private ArrayList<String> list_of_groups = new ArrayList<>();
+    private DatabaseReference GroupRef;
+
     public GroupsFragment() {
         // Required empty public constructor
     }
@@ -44,50 +45,46 @@ public class GroupsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-       groupfragmentView= inflater.inflate(R.layout.fragment_groups, container, false);
+        groupfragmentView = inflater.inflate(R.layout.fragment_groups, container, false);
 
-       GroupRef= FirebaseDatabase.getInstance().getReference().child("Groups");
+        GroupRef = FirebaseDatabase.getInstance().getReference().child("Groups");
 
-       IntializeFields();
+        IntializeFields();
 
-       RetriveAndDisplayGroups();
+        RetriveAndDisplayGroups();
 
-       list_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-           @Override
-           public void onItemClick(AdapterView<?> adapterView, View view, int position, long id)
-           {
-               String currentGroupName =adapterView.getItemAtPosition(position).toString();
-               Intent groupChatIntent=new Intent(getContext(),GroupChatActivity.class);
-               groupChatIntent.putExtra("groupName",currentGroupName);
-               startActivity(groupChatIntent);
+        list_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                String currentGroupName = adapterView.getItemAtPosition(position).toString();
+                Intent groupChatIntent = new Intent(getContext(), GroupChatActivity.class);
+                groupChatIntent.putExtra("groupName", currentGroupName);
+                startActivity(groupChatIntent);
 
 
-           }
-       });
+            }
+        });
 
         return groupfragmentView;
     }
 
 
     private void IntializeFields() {
-        list_view=(ListView)groupfragmentView.findViewById(R.id.list_view);
-        arrayAdapter=new ArrayAdapter<String>(getContext(),android.R.layout.simple_list_item_1,list_of_groups);
+        list_view = (ListView) groupfragmentView.findViewById(R.id.list_view);
+        arrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, list_of_groups);
         list_view.setAdapter(arrayAdapter);
     }
 
-    private void RetriveAndDisplayGroups()
-    {
+    private void RetriveAndDisplayGroups() {
 
         GroupRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-            {
-                Set<String> set =new HashSet<>();
-                Iterator iterator=dataSnapshot.getChildren().iterator();
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Set<String> set = new HashSet<>();
+                Iterator iterator = dataSnapshot.getChildren().iterator();
 
-                while (iterator.hasNext())
-                {
-                    set.add(((DataSnapshot)iterator.next()).getKey());
+                while (iterator.hasNext()) {
+                    set.add(((DataSnapshot) iterator.next()).getKey());
                 }
                 list_of_groups.clear();
                 list_of_groups.addAll(set);
@@ -100,7 +97,6 @@ public class GroupsFragment extends Fragment {
             }
         });
     }
-
 
 
 }

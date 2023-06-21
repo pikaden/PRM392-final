@@ -28,14 +28,14 @@
         <activity
             android:name=".FindFriendsActivity"
             android:parentActivityName=".MainActivity" />
-        <activity android:name=".PhoneLoginActivity" />
+        <activity android:name=".Activity.Login.PhoneLoginActivity" />
         <activity
             android:name=".GroupChatActivity"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".SettingsActivity"
             android:parentActivityName=".MainActivity" />
-        <activity android:name=".LoginActivity" />
+        <activity android:name=".Activity.Login.LoginActivity" />
 
         <activity
             android:name=".MainActivity"

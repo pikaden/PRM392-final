@@ -7,7 +7,7 @@
     android:layout_centerInParent="true"
     android:background="#4F4F4F"
     android:id="@+id/rootView"
-    tools:context=".PhoneLoginActivity">
+    tools:context=".Activity.Login.PhoneLoginActivity">
 
     <TextView
         android:id="@+id/ptitle"
