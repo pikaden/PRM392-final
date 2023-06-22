@@ -1,6 +1,5 @@
 package com.example.myapplication;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,16 +10,11 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.canhub.cropper.CropImage;
-import com.canhub.cropper.CropImageView;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -29,9 +23,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
-
 
 import java.util.HashMap;
 
@@ -45,7 +37,6 @@ public class SettingsActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference RootRef;
     private String currentUserID;
-    private static final int GalleryPick = 1;
     private StorageReference UserProfileImageRef;
     private ProgressBar progressBar;
     private Toolbar SettingsToolBar;
@@ -55,7 +46,6 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-
         mAuth = FirebaseAuth.getInstance();
         currentUserID = mAuth.getCurrentUser().getUid();
         RootRef = FirebaseDatabase.getInstance().getReference();
@@ -63,174 +53,75 @@ public class SettingsActivity extends AppCompatActivity {
         UserProfileImageRef = FirebaseStorage.getInstance().getReference().child("ProfileImages");
 
         InitializeFields();
-        //userName.setVisibility(View.INVISIBLE);
 
-        UpdateAccountSettings.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                UpdateSettings();
-            }
-
-        });
+        UpdateAccountSettings.setOnClickListener(view -> UpdateSettings());
 
         RetrieveUserInfo();
 
+        ActivityResultLauncher<Intent> startActivityForResult = getImageFromGallery();
 
+        // change avatar
         userProfileImage.setOnClickListener(view -> {
             Intent galleryIntent = new Intent();
             galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
             galleryIntent.setType("image/*");
-            startActivityForResult(galleryIntent, GalleryPick);
+
+            startActivityForResult.launch(galleryIntent);
         });
-
-
     }
 
     private void InitializeFields() {
 
-        UpdateAccountSettings = (Button) findViewById(R.id.update_settings_button);
-        userName = (EditText) findViewById(R.id.set_user_name);
-        userStatus = (EditText) findViewById(R.id.set_profile_status);
-        userProfileImage = (CircleImageView) findViewById(R.id.set_profile_image);
+        UpdateAccountSettings = findViewById(R.id.update_settings_button);
+        userName = findViewById(R.id.set_user_name);
+        userStatus = findViewById(R.id.set_profile_status);
+        userProfileImage = findViewById(R.id.set_profile_image);
         progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleLarge);
 
-        SettingsToolBar = (Toolbar) findViewById(R.id.settings_toolbar);
+        SettingsToolBar = findViewById(R.id.settings_toolbar);
         setSupportActionBar(SettingsToolBar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("Profile");
     }
 
+    private ActivityResultLauncher<Intent> getImageFromGallery() {
+        return registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == AppCompatActivity.RESULT_OK) {
+                        Intent data = result.getData();
 
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if (requestCode == GalleryPick && resultCode == RESULT_OK && data != null) {
-//            Uri ImageUri = data.getData();
-//
-//
-//            CropImage.activity().setGuidelines(CropImageView.Guidelines.ON).setAspectRatio(1, 1).start(this);
-//        }
-//
-//
-//        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
-//            CropImage.ActivityResult result = CropImage.getActivityResult(data);
-//
-//            if (resultCode == RESULT_OK) {
-//                progressBar.setTitle("Set Profile Image");
-//                progressBar.setMessage("Please Wait...");
-//                progressBar.setCanceledOnTouchOutside(false);
-//                progressBar.show();
-//                Uri resultUri = result.getUri();
-//
-//
-//                final StorageReference filepath = UserProfileImageRef.child(currentUserID + ".jpg");
-//
-//                filepath.putFile(resultUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-//                    @Override
-//                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//
-//                        filepath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-//                            @Override
-//                            public void onSuccess(Uri uri) {
-//
-//                                HashMap<String, String> downloadUrl = new HashMap<>();
-//                                String d = downloadUrl.toString().valueOf(uri);
-//                                ///downloadUrl.put("url",String.valueOf(uri));
-//
-//
-//                                RootRef.child("Users").child(currentUserID).child("image").setValue(d).addOnCompleteListener(new OnCompleteListener<Void>() {
-//                                    @Override
-//                                    public void onComplete(@NonNull Task<Void> task) {
-//                                        if (task.isSuccessful()) {
-//                                            Toast.makeText(SettingsActivity.this, "Image Save Successfully  ", Toast.LENGTH_SHORT).show();
-//                                            progressBar.dismiss();
-//                                        } else {
-//                                            String message = task.getException().toString();
-//
-//                                            Toast.makeText(SettingsActivity.this, "Error " + message, Toast.LENGTH_SHORT).show();
-//                                            progressBar.dismiss();
-//                                        }
-//                                    }
-//
-//                                });
-//                            }
-//
-//
-//                        });
-//
-//                    }
-//                });
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-///*
-//                    filepath.putFile(resultUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-//                         @Override
-//                         public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task)
-//                         {
-//                             if(task.isSuccessful())
-//                             {
-//
-//
-//                                 Toast.makeText(SettingsActivity.this,"Profile Image Uploaded Successfully..",Toast.LENGTH_SHORT).show();
-//
-//                                 final String downloadUrl = task.getResult().getDownloadUrl().toString();
-//
-//
-//                                         // getting image uri and converting into string
-//
-//
-//
-//
-//                                 RootRef.child("Users").child(currentUserID).child("image").setValue(downloadUrl).addOnCompleteListener(new OnCompleteListener<Void>() {
-//                                     @Override
-//                                     public void onComplete(@NonNull Task<Void> task)
-//                                     {
-//                                         if(task.isSuccessful())
-//                                         {
-//                                             Toast.makeText(SettingsActivity.this,"Image Save Successfully  ",Toast.LENGTH_SHORT).show();
-//                                             progressBar.dismiss();
-//                                         }
-//                                         else
-//                                         {
-//                                             String message =task.getException().toString();
-//
-//                                             Toast.makeText(SettingsActivity.this,"Error "+message,Toast.LENGTH_SHORT).show();
-//                                             progressBar.dismiss();
-//                                         }
-//                                     }
-//                                 });
-//                             }
-//                             else
-//                             {
-//                                 String message =task.getException().toString();
-//                                 Toast.makeText(SettingsActivity.this,"Error "+message,Toast.LENGTH_SHORT).show();
-//                                 progressBar.dismiss();
-//                             }
-//                         }
-//                     }); */
-//
-//
-//            }
-//
-//
-//        }
-//
-//
-//    }
+                        // get image uri
+                        Uri imageUri = data.getData();
+
+                        // set image
+                        userProfileImage.setImageURI(imageUri);
+
+                        // upload image to firebase storage
+                        final StorageReference filepath = UserProfileImageRef.child(currentUserID + ".jpg");
+
+                        filepath.putFile(imageUri).addOnSuccessListener(taskSnapshot -> filepath.getDownloadUrl().addOnSuccessListener(uri -> {
+
+                            HashMap<String, String> downloadUrl = new HashMap<>();
+                            String d = downloadUrl.toString().valueOf(uri);
+                            progressBar.setVisibility(View.VISIBLE);
+
+                            RootRef.child("Users").child(currentUserID).child("image").setValue(d).addOnCompleteListener(task -> {
+                                if (task.isSuccessful()) {
+                                    Toast.makeText(SettingsActivity.this, "Image Save Successfully  ", Toast.LENGTH_SHORT).show();
+                                    progressBar.setVisibility(View.GONE);
+                                } else {
+                                    String message = task.getException().toString();
+
+                                    Toast.makeText(SettingsActivity.this, "Error " + message, Toast.LENGTH_SHORT).show();
+                                    progressBar.setVisibility(View.GONE);
+                                }
+                            });
+                        }));
+                    }
+                });
+    }
 
     private void UpdateSettings() {
         String setUserName = userName.getText().toString();
@@ -246,9 +137,9 @@ public class SettingsActivity extends AppCompatActivity {
         } else {
             HashMap<String, Object> profileMap = new HashMap<>();
             profileMap.put("uid", currentUserID);
-
             profileMap.put("name", setUserName);
             profileMap.put("status", setStatus);
+
             RootRef.child("Users").child(currentUserID).updateChildren(profileMap).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     SendUserToMainActivity();
@@ -276,10 +167,6 @@ public class SettingsActivity extends AppCompatActivity {
 
                     Picasso.get().load(retrieveProfileImage).into(userProfileImage);
 
-
-                    // ImageUri.setImageURI(retrieveProfileImage);
-
-
                 } else if ((dataSnapshot.exists()) && (dataSnapshot.hasChild("name"))) {
 
                     String retrieveUserName = dataSnapshot.child("name").getValue().toString();
@@ -289,10 +176,7 @@ public class SettingsActivity extends AppCompatActivity {
                     userName.setText(retrieveUserName);
                     userStatus.setText(retrievesStatus);
 
-
                 } else {
-
-                    // userName.setVisibility(View.VISIBLE);
                     Toast.makeText(SettingsActivity.this, "Update Your Profile", Toast.LENGTH_SHORT).show();
                 }
             }
