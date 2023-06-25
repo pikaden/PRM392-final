@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
@@ -29,9 +30,8 @@ import com.google.firebase.auth.PhoneAuthProvider;
 import java.util.concurrent.TimeUnit;
 
 public class PhoneLoginActivity extends AppCompatActivity {
-
-    private Button SendVerificationCodeButton, VerifyButton;
-    private EditText InputPhoneNumber, InputVerificationCode;
+    private Button sendVerificationCodeButton, verifyButton;
+    private EditText inputPhoneNumber, InputVerificationCode;
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks;
     private String mVerificationId;
     private PhoneAuthProvider.ForceResendingToken mResendToken;
@@ -39,48 +39,30 @@ public class PhoneLoginActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView phoneNumberCode;
     private RelativeLayout layout;
+    private Toolbar loginToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_phone_login);
 
-
-        mAuth = FirebaseAuth.getInstance();
-
-        SendVerificationCodeButton = findViewById(R.id.send_ver_code_button);
-
-        VerifyButton = findViewById(R.id.verify_button);
-
-        phoneNumberCode = findViewById(R.id.phoneNumberCode);
-
-        InputPhoneNumber = findViewById(R.id.phone_number_input);
-
-        InputVerificationCode = findViewById(R.id.verification_code_input);
-
-        layout = findViewById(R.id.rootView);
-        progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleLarge);
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
-        params.addRule(RelativeLayout.CENTER_IN_PARENT);
-        progressBar.setVisibility(View.GONE);
-        layout.addView(progressBar, params);
+        initializeFields();
 
         // set
-        InputPhoneNumber.setText("1234567890");
+        inputPhoneNumber.setText("1234567890");
         InputVerificationCode.setText("123456");
 
-        SendVerificationCodeButton.setOnClickListener(view -> {
+        sendVerificationCodeButton.setOnClickListener(view -> {
+            isDisable(true);
 
             // use fiction number only
-            String phoneNumber = "+1" + InputPhoneNumber.getText().toString();
+            String phoneNumber = "+1" + inputPhoneNumber.getText().toString();
 
             if (TextUtils.isEmpty(phoneNumber)) {
+                isDisable(false);
                 Toast.makeText(PhoneLoginActivity.this, "Please Enter Phone Number", Toast.LENGTH_SHORT).show();
             } else {
-                progressBar.setVisibility(View.VISIBLE);
-//                // disable user interaction
-//                getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-//                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                isDisable(false);
 
                 PhoneAuthOptions options = PhoneAuthOptions.newBuilder(mAuth)
                         .setPhoneNumber(phoneNumber)    // Phone number to verify
@@ -91,20 +73,22 @@ public class PhoneLoginActivity extends AppCompatActivity {
 
                 PhoneAuthProvider.verifyPhoneNumber(options);
             }
-
         });
 
 
-        VerifyButton.setOnClickListener(view -> {
-            SendVerificationCodeButton.setVisibility(View.INVISIBLE);
+        verifyButton.setOnClickListener(view -> {
+            sendVerificationCodeButton.setVisibility(View.INVISIBLE);
             phoneNumberCode.setVisibility(View.INVISIBLE);
-            InputPhoneNumber.setVisibility(View.INVISIBLE);
+            inputPhoneNumber.setVisibility(View.INVISIBLE);
+
+            isDisable(true);
 
             String verificationCode = InputVerificationCode.getText().toString();
             if (TextUtils.isEmpty(verificationCode)) {
+                isDisable(false);
                 Toast.makeText(PhoneLoginActivity.this, "Please Write Verification Code", Toast.LENGTH_SHORT).show();
             } else {
-                progressBar.setVisibility(View.VISIBLE);
+                isDisable(false);
 
                 PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId, verificationCode);
                 signInWithPhoneAuthCredential(credential);
@@ -116,77 +100,98 @@ public class PhoneLoginActivity extends AppCompatActivity {
         callbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
             public void onVerificationCompleted(PhoneAuthCredential phoneAuthCredential) {
-
+                isDisable(false);
                 signInWithPhoneAuthCredential(phoneAuthCredential);
-
             }
 
             @Override
             public void onVerificationFailed(FirebaseException e) {
-                progressBar.setVisibility(View.GONE);
-                // enable user interaction
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                isDisable(false);
 
                 Toast.makeText(PhoneLoginActivity.this, "Invalid Phone Number ,Please Enter Correct Phone Number", Toast.LENGTH_SHORT).show();
 
-                SendVerificationCodeButton.setVisibility(View.VISIBLE);
+                sendVerificationCodeButton.setVisibility(View.VISIBLE);
 
-                InputPhoneNumber.setVisibility(View.VISIBLE);
-
-                VerifyButton.setVisibility(View.INVISIBLE);
+                inputPhoneNumber.setVisibility(View.VISIBLE);
+                verifyButton.setVisibility(View.INVISIBLE);
                 InputVerificationCode.setVisibility(View.INVISIBLE);
-
-
             }
 
             public void onCodeSent(String verificationId, PhoneAuthProvider.ForceResendingToken token) {
                 mVerificationId = verificationId;
                 mResendToken = token;
 
-                progressBar.setVisibility(View.GONE);
+                isDisable(false);
 
                 Toast.makeText(PhoneLoginActivity.this, "Code Has Been Sent", Toast.LENGTH_SHORT).show();
 
-                SendVerificationCodeButton.setVisibility(View.INVISIBLE);
+                sendVerificationCodeButton.setVisibility(View.INVISIBLE);
                 phoneNumberCode.setVisibility(View.INVISIBLE);
-                InputPhoneNumber.setVisibility(View.INVISIBLE);
+                inputPhoneNumber.setVisibility(View.INVISIBLE);
 
-                VerifyButton.setVisibility(View.VISIBLE);
+                verifyButton.setVisibility(View.VISIBLE);
                 InputVerificationCode.setVisibility(View.VISIBLE);
-
-
             }
-
-
         };
-
-
     }
 
+    private void initializeFields() {
+        mAuth = FirebaseAuth.getInstance();
+
+        sendVerificationCodeButton = findViewById(R.id.send_ver_code_button);
+        verifyButton = findViewById(R.id.verify_button);
+        phoneNumberCode = findViewById(R.id.phoneNumberCode);
+        inputPhoneNumber = findViewById(R.id.phone_number_input);
+        InputVerificationCode = findViewById(R.id.verification_code_input);
+        layout = findViewById(R.id.rootView);
+
+        // loading bar
+        progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleLarge);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
+        params.addRule(RelativeLayout.CENTER_IN_PARENT);
+        progressBar.setVisibility(View.GONE);
+        layout.addView(progressBar, params);
+
+        // back button
+        loginToolbar = findViewById(R.id.phone_number_sign_in_toolbar);
+        setSupportActionBar(loginToolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("");
+    }
 
     private void signInWithPhoneAuthCredential(PhoneAuthCredential credential) {
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        progressBar.setVisibility(View.GONE);
-                        // enable user interaction
-                        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-                        Toast.makeText(PhoneLoginActivity.this, "Successfully Registered", Toast.LENGTH_SHORT).show();
-                        SendUserToMainActivity();
+                        Toast.makeText(PhoneLoginActivity.this, "Login successfully", Toast.LENGTH_SHORT).show();
+                        sendUserToMainActivity();
                     } else {
-                        String message = task.getException().toString();
+                        String message = "Cannot login, please check again your verification code";
 
-                        Toast.makeText(PhoneLoginActivity.this, "Error :" + message, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(PhoneLoginActivity.this, "Error: " + message, Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-    private void SendUserToMainActivity() {
+    private void sendUserToMainActivity() {
         Intent mainIntent = new Intent(PhoneLoginActivity.this, MainActivity.class);
         startActivity(mainIntent);
         finish();
     }
 
-
+    /**
+     * @param isDisable turn on progress bar
+     */
+    private void isDisable(boolean isDisable) {
+        if (isDisable == true) {
+            progressBar.setVisibility(View.VISIBLE);
+            // disable user interaction
+//            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+//                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+        } else {
+            progressBar.setVisibility(View.GONE);
+            // enable user interaction
+//            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+        }
+    }
 }

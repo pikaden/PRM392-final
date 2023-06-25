@@ -5,11 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#4F4F4F"
-    tools:context=".SettingsActivity">
-
-    <include
-        android:id="@+id/settings_toolbar"
-        layout="@layout/app_bar_layout" />
+    android:id="@+id/rootView"
+    tools:context=".Activity.Signup.EmailSignupActivity">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/set_profile_image"
@@ -20,7 +17,8 @@
         android:layout_marginTop="65dp"
         android:src="@drawable/profile_image"
         app:civ_border_color="@color/colorPrimary"
-        app:civ_border_width="5dp" />
+        app:civ_border_width="5dp"
+        />
 
     <EditText
         android:id="@+id/name"
@@ -57,7 +55,7 @@
         android:textColorHint="@android:color/background_light" />
 
     <Button
-        android:id="@+id/update_settings_button"
+        android:id="@+id/create_profile_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/status"
@@ -67,7 +65,7 @@
         android:background="#19B391"
         android:inputType="textMultiLine"
         android:padding="6dp"
-        android:text="update"
+        android:text="create account"
         android:textAlignment="center"
         android:textAllCaps="true"
         android:textColor="@android:color/background_light"

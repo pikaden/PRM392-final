@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.myapplication.Entity.Users;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,7 +33,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class SettingsActivity extends AppCompatActivity {
 
     private Button UpdateAccountSettings;
-    private EditText userName, userStatus;
+    private EditText name, status;
     private CircleImageView userProfileImage;
     private FirebaseAuth mAuth;
     private DatabaseReference RootRef;
@@ -73,8 +74,8 @@ public class SettingsActivity extends AppCompatActivity {
     private void InitializeFields() {
 
         UpdateAccountSettings = findViewById(R.id.update_settings_button);
-        userName = findViewById(R.id.set_user_name);
-        userStatus = findViewById(R.id.set_profile_status);
+        name = findViewById(R.id.name);
+        status = findViewById(R.id.status);
         userProfileImage = findViewById(R.id.set_profile_image);
         progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleLarge);
 
@@ -124,21 +125,19 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void UpdateSettings() {
-        String setUserName = userName.getText().toString();
+        String userName = name.getText().toString();
 
-        String setStatus = userStatus.getText().toString();
+        String userStatus = status.getText().toString();
 
-        if (TextUtils.isEmpty(setUserName)) {
+        if (TextUtils.isEmpty(userName)) {
             Toast.makeText(this, "Please Write Your Name", Toast.LENGTH_SHORT).show();
-        }
-
-        if (TextUtils.isEmpty(setStatus)) {
+        } else if (TextUtils.isEmpty(userStatus)) {
             Toast.makeText(this, "Please Write Your Status", Toast.LENGTH_SHORT).show();
         } else {
+            // update user name and status
             HashMap<String, Object> profileMap = new HashMap<>();
-            profileMap.put("uid", currentUserID);
-            profileMap.put("name", setUserName);
-            profileMap.put("status", setStatus);
+            profileMap.put("name", userName);
+            profileMap.put("status", userStatus);
 
             RootRef.child("Users").child(currentUserID).updateChildren(profileMap).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
@@ -149,7 +148,6 @@ public class SettingsActivity extends AppCompatActivity {
                     Toast.makeText(SettingsActivity.this, "Error:" + message, Toast.LENGTH_SHORT).show();
                 }
             });
-
         }
     }
 
@@ -162,8 +160,8 @@ public class SettingsActivity extends AppCompatActivity {
                     String retrievesStatus = dataSnapshot.child("status").getValue().toString();
                     String retrieveProfileImage = dataSnapshot.child("image").getValue().toString();
 
-                    userName.setText(retrieveUserName);
-                    userStatus.setText(retrievesStatus);
+                    name.setText(retrieveUserName);
+                    status.setText(retrievesStatus);
 
                     Picasso.get().load(retrieveProfileImage).into(userProfileImage);
 
@@ -173,8 +171,8 @@ public class SettingsActivity extends AppCompatActivity {
                     String retrievesStatus = dataSnapshot.child("status").getValue().toString();
 
 
-                    userName.setText(retrieveUserName);
-                    userStatus.setText(retrievesStatus);
+                    name.setText(retrieveUserName);
+                    status.setText(retrievesStatus);
 
                 } else {
                     Toast.makeText(SettingsActivity.this, "Update Your Profile", Toast.LENGTH_SHORT).show();

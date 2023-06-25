@@ -1,12 +1,18 @@
 package com.example.myapplication.Entity;
 
-import com.google.type.DateTime;
+import com.google.firebase.database.Exclude;
+import com.google.firebase.database.IgnoreExtraProperties;
 
+import java.util.HashMap;
+import java.util.Map;
+
+@IgnoreExtraProperties
 public class Users {
-    private String name, status, image, url;
-    private DateTime time, date, state;
+    private String name, status, image;
+    public Map<String, Object> onlineStateMap = new HashMap<>();
 
     public Users() {
+        // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     }
 
     public Users(String name, String status, String image) {
@@ -39,27 +45,22 @@ public class Users {
         this.image = image;
     }
 
-    public DateTime getTime() {
-        return time;
+    public Map<String, Object> getOnlineStateMap() {
+        return onlineStateMap;
     }
 
-    public void setTime(DateTime time) {
-        this.time = time;
+    public void setOnlineStateMap(Map<String, Object> onlineStateMap) {
+        this.onlineStateMap = onlineStateMap;
     }
 
-    public DateTime getDate() {
-        return date;
-    }
+    @Exclude
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("name", name);
+        result.put("status", status);
+        result.put("image", image);
+        result.put("onlineStateMap", onlineStateMap);
 
-    public void setDate(DateTime date) {
-        this.date = date;
-    }
-
-    public DateTime getState() {
-        return state;
-    }
-
-    public void setState(DateTime state) {
-        this.state = state;
+        return result;
     }
 }

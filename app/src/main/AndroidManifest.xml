@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
-    <!--Permissions for internet-->
+    <!-- Permissions for internet -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
@@ -18,8 +17,11 @@
         android:theme="@style/Theme.MyApplication"
         tools:targetApi="31">
         <activity
+            android:name=".Activity.Login.EmailLoginActivity"
+            android:parentActivityName=".MainActivity" />
+        <activity
             android:name=".about"
-            android:parentActivityName=".MainActivity"></activity>
+            android:parentActivityName=".MainActivity" />
         <activity android:name=".imageViewerActivity" />
         <activity
             android:name=".ChatActivity"
@@ -28,15 +30,20 @@
         <activity
             android:name=".FindFriendsActivity"
             android:parentActivityName=".MainActivity" />
-        <activity android:name=".Activity.Login.PhoneLoginActivity" />
+        <activity
+            android:name=".Activity.Login.PhoneLoginActivity"
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".GroupChatActivity"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".SettingsActivity"
             android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".Activity.Signup.SignupActivity"
+            android:parentActivityName=".MainActivity" />
         <activity android:name=".Activity.Login.LoginActivity" />
-
+        <activity android:name=".Activity.Signup.EmailSignupActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

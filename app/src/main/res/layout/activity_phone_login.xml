@@ -2,12 +2,16 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_centerInParent="true"
     android:background="#4F4F4F"
-    android:id="@+id/rootView"
     tools:context=".Activity.Login.PhoneLoginActivity">
+
+    <include
+        android:id="@+id/phone_number_sign_in_toolbar"
+        layout="@layout/app_bar_layout" />
 
     <TextView
         android:id="@+id/ptitle"
@@ -32,9 +36,9 @@
             android:layout_marginStart="17dp"
             android:layout_marginTop="100dp"
             android:text="+1"
-            android:visibility="visible"
             android:textColor="@android:color/white"
-            android:textSize="17sp" />
+            android:textSize="17sp"
+            android:visibility="visible" />
 
         <EditText
             android:id="@+id/phone_number_input"
@@ -50,8 +54,8 @@
             android:hint="Phone Number"
             android:inputType="phone"
             android:maxLength="10"
-            android:textColor="@android:color/white"
             android:padding="8dp"
+            android:textColor="@android:color/white"
             android:textColorHint="@android:color/white"
             android:textSize="17sp" />
 
@@ -72,9 +76,9 @@
         android:padding="5dp"
         android:textAlignment="center"
         android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textColorHint="@android:color/white"
         android:textSize="15sp"
-
-        android:textStyle="bold"
         android:visibility="invisible" />
 
     <Button

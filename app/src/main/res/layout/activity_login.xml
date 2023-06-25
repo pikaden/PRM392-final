@@ -34,7 +34,7 @@
 
         <TextView
             android:layout_width="300dp"
-            android:layout_marginTop="90dp"
+            android:layout_marginTop="30dp"
             android:layout_height="wrap_content"
             android:text="Read our Privacy Policy. Tap 'Agree and Continue' to accept the Terms of Service."
             android:textColor="@android:color/white"
@@ -50,7 +50,7 @@
             android:background="@drawable/loginbutton"
             android:layout_centerHorizontal="true"
             android:padding="5dp"
-            android:text="Agree and Continue"
+            android:text="Sign in by phone"
             android:layout_marginTop="20dp"
             android:layout_below="@+id/tands"
             android:textAllCaps="true"
@@ -58,17 +58,33 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/email_login_button"
+            android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:text="A Hipstermartin production"
-            android:id="@+id/prod"
-            android:textColor="@android:color/white"
-            android:textSize="16dp"
-            android:textStyle="italic"
-            android:layout_alignParentBottom="true"
+            android:background="@drawable/loginbutton"
             android:layout_centerHorizontal="true"
-            android:layout_marginBottom="10dp"/>
+            android:padding="5dp"
+            android:text="Sign in by email"
+            android:layout_below="@+id/phone_login_button"
+            android:textAllCaps="true"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/signup_button"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/loginbutton"
+            android:layout_centerHorizontal="true"
+            android:padding="5dp"
+            android:text="sign up"
+            android:layout_below="@+id/email_login_button"
+            android:textAllCaps="true"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
     </RelativeLayout>
 </RelativeLayout>
