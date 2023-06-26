@@ -16,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.myapplication.Activity.LinkAuthProviders.LinkEmailAndPasswordWithPhoneNumber;
 import com.example.myapplication.Entity.Users;
 import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
@@ -135,7 +136,7 @@ public class EmailSignupActivity extends AppCompatActivity {
 
             rootRef.child("Users").child(currentUserID).updateChildren(profileMap).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
-                    sendUserToMainActivity();
+                    sendUserToAuthWithPhoneNumber();
                     Toast.makeText(EmailSignupActivity.this, "Create account successfully", Toast.LENGTH_SHORT).show();
                 } else {
                     String message = task.getException().toString();
@@ -145,8 +146,8 @@ public class EmailSignupActivity extends AppCompatActivity {
         }
     }
 
-    private void sendUserToMainActivity() {
-        Intent mainIntent = new Intent(EmailSignupActivity.this, MainActivity.class);
+    private void sendUserToAuthWithPhoneNumber() {
+        Intent mainIntent = new Intent(EmailSignupActivity.this, LinkEmailAndPasswordWithPhoneNumber.class);
         startActivity(mainIntent);
     }
 

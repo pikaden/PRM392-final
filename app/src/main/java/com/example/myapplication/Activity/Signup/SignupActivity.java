@@ -36,7 +36,7 @@ public class SignupActivity extends AppCompatActivity {
         initializeFields();
 
         signUpByEmailButton.setOnClickListener(v -> {
-            progressBar.setVisibility(View.VISIBLE);
+            isDisable(true);
             signUpByEmail(inputEmail.getText().toString(), inputPassword.getText().toString());
         });
     }
@@ -67,7 +67,7 @@ public class SignupActivity extends AppCompatActivity {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        progressBar.setVisibility(View.GONE);
+                        isDisable(false);
                         // Sign up success
                         Toast.makeText(SignupActivity.this, "Sign up user success!.",
                                 Toast.LENGTH_SHORT).show();
@@ -78,8 +78,8 @@ public class SignupActivity extends AppCompatActivity {
                         // update user profile
                         sendUserToEmailSignupActivity();
                     } else {
-                        progressBar.setVisibility(View.GONE);
-                        // If sign in fails, display a message to the user.
+                        isDisable(false);
+                        // If sign up fails, display a message to the user.
                         Log.w(TAG, "createUserWithEmail:failure", task.getException());
                         Toast.makeText(SignupActivity.this, "Authentication failed.",
                                 Toast.LENGTH_SHORT).show();
@@ -90,5 +90,21 @@ public class SignupActivity extends AppCompatActivity {
     private void sendUserToEmailSignupActivity() {
         Intent settingsIntent = new Intent(SignupActivity.this, EmailSignupActivity.class);
         startActivity(settingsIntent);
+    }
+
+    /**
+     * @param isDisable turn on progress bar
+     */
+    private void isDisable(boolean isDisable) {
+        if (isDisable == true) {
+            progressBar.setVisibility(View.VISIBLE);
+            // disable user interaction
+//            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+//                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+        } else {
+            progressBar.setVisibility(View.GONE);
+            // enable user interaction
+//            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+        }
     }
 }

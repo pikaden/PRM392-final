@@ -1,10 +1,12 @@
-package com.example.myapplication.Activity.Login;
+package com.example.myapplication.Activity.LinkAuthProviders;
+
+import static android.content.ContentValues.TAG;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -12,16 +14,11 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseException;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
@@ -29,8 +26,9 @@ import com.google.firebase.auth.PhoneAuthProvider;
 
 import java.util.concurrent.TimeUnit;
 
-public class PhoneLoginActivity extends AppCompatActivity {
-    private Button sendVerificationCodeButton, verifyButton;
+public class LinkEmailAndPasswordWithPhoneNumber extends AppCompatActivity {
+
+    private Button sendVerificationCodeButton, verifyButton, skipButton;
     private EditText inputPhoneNumber, inputVerificationCode;
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks;
     private String mVerificationId;
@@ -39,18 +37,13 @@ public class PhoneLoginActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView phoneNumberCode;
     private RelativeLayout layout;
-    private Toolbar loginToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_phone_login);
+        setContentView(R.layout.activity_link_email_and_password_with_phone_number);
 
         initializeFields();
-
-        // set
-        inputPhoneNumber.setText("1234567890");
-        inputVerificationCode.setText("123456");
 
         sendVerificationCodeButton.setOnClickListener(view -> {
             isDisable(true);
@@ -60,21 +53,20 @@ public class PhoneLoginActivity extends AppCompatActivity {
 
             if (TextUtils.isEmpty(phoneNumber)) {
                 isDisable(false);
-                Toast.makeText(PhoneLoginActivity.this, "Please Enter Phone Number", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LinkEmailAndPasswordWithPhoneNumber.this, "Please Enter Phone Number", Toast.LENGTH_SHORT).show();
             } else {
                 isDisable(false);
 
                 PhoneAuthOptions options = PhoneAuthOptions.newBuilder(mAuth)
                         .setPhoneNumber(phoneNumber)    // Phone number to verify
                         .setTimeout(60L, TimeUnit.SECONDS)  // Timeout and unit
-                        .setActivity(PhoneLoginActivity.this)   // Activity (for callback binding)
+                        .setActivity(LinkEmailAndPasswordWithPhoneNumber.this)   // Activity (for callback binding)
                         .setCallbacks(callbacks)    // OnVerificationStateChangedCallbacks
                         .build();
 
                 PhoneAuthProvider.verifyPhoneNumber(options);
             }
         });
-
 
         verifyButton.setOnClickListener(view -> {
             sendVerificationCodeButton.setVisibility(View.INVISIBLE);
@@ -86,29 +78,31 @@ public class PhoneLoginActivity extends AppCompatActivity {
             String verificationCode = inputVerificationCode.getText().toString();
             if (TextUtils.isEmpty(verificationCode)) {
                 isDisable(false);
-                Toast.makeText(PhoneLoginActivity.this, "Please Write Verification Code", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LinkEmailAndPasswordWithPhoneNumber.this, "Please Write Verification Code", Toast.LENGTH_SHORT).show();
             } else {
                 isDisable(false);
 
                 PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId, verificationCode);
-                signInWithPhoneAuthCredential(credential);
+
+                // link account with phone number
+                linkAccountWithPhoneNumber(credential);
             }
 
         });
-
 
         callbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
             public void onVerificationCompleted(PhoneAuthCredential phoneAuthCredential) {
                 isDisable(false);
-                signInWithPhoneAuthCredential(phoneAuthCredential);
+                linkAccountWithPhoneNumber(phoneAuthCredential);
+                Log.i(TAG, "onVerificationCompleted:" + phoneAuthCredential);
             }
 
             @Override
             public void onVerificationFailed(FirebaseException e) {
                 isDisable(false);
 
-                Toast.makeText(PhoneLoginActivity.this, "Invalid Phone Number ,Please Enter Correct Phone Number", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LinkEmailAndPasswordWithPhoneNumber.this, "Invalid Phone Number ,Please Enter Correct Phone Number", Toast.LENGTH_SHORT).show();
 
                 sendVerificationCodeButton.setVisibility(View.VISIBLE);
 
@@ -123,7 +117,7 @@ public class PhoneLoginActivity extends AppCompatActivity {
 
                 isDisable(false);
 
-                Toast.makeText(PhoneLoginActivity.this, "Code Has Been Sent", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LinkEmailAndPasswordWithPhoneNumber.this, "Code Has Been Sent", Toast.LENGTH_SHORT).show();
 
                 sendVerificationCodeButton.setVisibility(View.INVISIBLE);
                 phoneNumberCode.setVisibility(View.INVISIBLE);
@@ -133,6 +127,8 @@ public class PhoneLoginActivity extends AppCompatActivity {
                 inputVerificationCode.setVisibility(View.VISIBLE);
             }
         };
+
+        skipButton.setOnClickListener(v -> sendUserToMainActivity());
     }
 
     private void initializeFields() {
@@ -140,6 +136,8 @@ public class PhoneLoginActivity extends AppCompatActivity {
 
         sendVerificationCodeButton = findViewById(R.id.send_ver_code_button);
         verifyButton = findViewById(R.id.verify_button);
+        skipButton = findViewById(R.id.skip_link_phone_number);
+
         phoneNumberCode = findViewById(R.id.phoneNumberCode);
         inputPhoneNumber = findViewById(R.id.phone_number_input);
         inputVerificationCode = findViewById(R.id.verification_code_input);
@@ -151,32 +149,35 @@ public class PhoneLoginActivity extends AppCompatActivity {
         params.addRule(RelativeLayout.CENTER_IN_PARENT);
         progressBar.setVisibility(View.GONE);
         layout.addView(progressBar, params);
-
-        // back button
-        loginToolbar = findViewById(R.id.phone_number_sign_in_toolbar);
-        setSupportActionBar(loginToolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("");
-    }
-
-    private void signInWithPhoneAuthCredential(PhoneAuthCredential credential) {
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(PhoneLoginActivity.this, "Login successfully", Toast.LENGTH_SHORT).show();
-                        sendUserToMainActivity();
-                    } else {
-                        String message = "Cannot login, please check again your verification code";
-
-                        Toast.makeText(PhoneLoginActivity.this, "Error: " + message, Toast.LENGTH_SHORT).show();
-                    }
-                });
     }
 
     private void sendUserToMainActivity() {
-        Intent mainIntent = new Intent(PhoneLoginActivity.this, MainActivity.class);
+        Intent mainIntent = new Intent(LinkEmailAndPasswordWithPhoneNumber.this, MainActivity.class);
         startActivity(mainIntent);
-        finish();
+    }
+
+    private void linkAccountWithPhoneNumber(PhoneAuthCredential credential) {
+        mAuth.getCurrentUser().linkWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "Link account with phone number: success");
+                        Toast.makeText(LinkEmailAndPasswordWithPhoneNumber.this, "Link account with phone number: success",
+                                Toast.LENGTH_LONG).show();
+                        sendUserToMainActivity();
+                    } else {
+                        // This credential is already associated with a different user account
+                        Log.w(TAG, "This credential: " + credential +"is already associated with a different user account", task.getException());
+                        Toast.makeText(LinkEmailAndPasswordWithPhoneNumber.this, "This phone number is already associated with a different user account",
+                                Toast.LENGTH_LONG).show();
+
+                        sendVerificationCodeButton.setVisibility(View.VISIBLE);
+                        phoneNumberCode.setVisibility(View.VISIBLE);
+                        inputPhoneNumber.setVisibility(View.VISIBLE);
+
+                        verifyButton.setVisibility(View.INVISIBLE);
+                        inputVerificationCode.setVisibility(View.INVISIBLE);
+                    }
+                });
     }
 
     /**

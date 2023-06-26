@@ -44,6 +44,7 @@
             android:parentActivityName=".MainActivity" />
         <activity android:name=".Activity.Login.LoginActivity" />
         <activity android:name=".Activity.Signup.EmailSignupActivity" />
+        <activity android:name=".Activity.LinkAuthProviders.LinkEmailAndPasswordWithPhoneNumber" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
