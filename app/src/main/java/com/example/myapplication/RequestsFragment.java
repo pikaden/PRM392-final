@@ -328,6 +328,7 @@ public class RequestsFragment extends Fragment {
         TextView userName, userStatus;
         CircleImageView profileImage;
         Button AcceptButton, CancelButton;
+        //daubuoi
 
         public RequestViewHolder(@NonNull View itemView) {
             super(itemView);
