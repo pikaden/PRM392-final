@@ -44,7 +44,7 @@ public class RequestsFragment extends Fragment {
     private String currentUserID;
 
     public RequestsFragment() {
-        // Required empty public constructor
+        // Required empty public constructo
     }
 
 
