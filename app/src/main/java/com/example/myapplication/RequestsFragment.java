@@ -66,7 +66,7 @@ public class RequestsFragment extends Fragment {
         return RequestsFragmentView;
     }
 
-    //THANH Heo
+    //THANH He
     @Override
     public void onStart() {
         super.onStart();
