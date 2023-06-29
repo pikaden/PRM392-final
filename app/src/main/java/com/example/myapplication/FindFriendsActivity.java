@@ -50,8 +50,6 @@ public class FindFriendsActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-
-
         FirebaseRecyclerOptions<Contacts> options = new FirebaseRecyclerOptions.Builder<Contacts>().setQuery(UsersRef, Contacts.class).build();
 
         FirebaseRecyclerAdapter<Contacts, FindFriendViewHolder> adapter =

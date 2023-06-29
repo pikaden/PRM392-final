@@ -293,21 +293,14 @@ public class RequestsFragment extends Fragment {
 
 
                                     }
-
-
                                 }
-
                             }
-
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) {
 
                             }
                         });
-
-
                     }
-
                     @NonNull
                     @Override
                     public RequestViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {

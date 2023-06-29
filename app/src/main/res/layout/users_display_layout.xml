@@ -78,24 +78,23 @@
                 <Button
                     android:id="@+id/request_accept_btn"
                     android:layout_width="wrap_content"
-                    android:layout_height="30dp"
+                    android:layout_height="wrap_content"
                     android:background="@drawable/loginbutton"
                     android:text="Accept"
                     android:textColor="@android:color/white"
-                    android:textSize="16sp"
+                    android:textSize="12sp"
                     android:layout_marginLeft="10dp"
                     android:visibility="invisible"></Button>
 
                 <Button
                     android:id="@+id/request_cancel_btn"
                     android:layout_width="wrap_content"
-                    android:layout_height="30dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:background="@drawable/decline"
-
                     android:text="Cancel"
                     android:textColor="@android:color/white"
-                    android:textSize="16sp"
+                    android:textSize="12sp"
                     android:visibility="invisible"></Button>
 
 
