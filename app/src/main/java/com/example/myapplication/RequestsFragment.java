@@ -44,7 +44,7 @@ public class RequestsFragment extends Fragment {
     private String currentUserID;
 
     public RequestsFragment() {
-        // Required empty public constructo
+        // Required empty public constructor
     }
 
 
@@ -66,7 +66,6 @@ public class RequestsFragment extends Fragment {
         return RequestsFragmentView;
     }
 
-    //THANH He
     @Override
     public void onStart() {
         super.onStart();
@@ -322,7 +321,6 @@ public class RequestsFragment extends Fragment {
         TextView userName, userStatus;
         CircleImageView profileImage;
         Button AcceptButton, CancelButton;
-        //daubuoiasdasd
 
         public RequestViewHolder(@NonNull View itemView) {
             super(itemView);
