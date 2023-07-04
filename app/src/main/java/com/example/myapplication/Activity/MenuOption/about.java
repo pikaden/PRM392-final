@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.myapplication.Activity.MenuOption;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -8,6 +8,8 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
+import com.example.myapplication.R;
 
 public class about extends AppCompatActivity {
 

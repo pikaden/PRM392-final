@@ -1,6 +1,5 @@
 package com.example.myapplication;
 
-
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,15 +9,16 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.myapplication.Activity.Login.LoginActivity;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.example.myapplication.Activity.MenuOption.FindFriendsActivity;
+import com.example.myapplication.Activity.MenuOption.SettingsActivity;
+import com.example.myapplication.Activity.MenuOption.about;
+import com.example.myapplication.Fragment.TabsAccessorAdapter;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -34,33 +34,40 @@ import java.util.HashMap;
 
 
 public class MainActivity extends AppCompatActivity {
-
-
     private Toolbar mToolbar;
     private ViewPager myViewPager;
     private TabLayout myTabLayout;
-    private TabsAccessorAdapter mytabsAccessorAdapter;
+    private TabsAccessorAdapter myTabsAccessorAdapter;
     // private FirebaseUser currentUser;
     private FirebaseAuth mAuth;
-    private DatabaseReference RootRef;
+    private DatabaseReference rootRef;
     private String currentUserID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        initializeFields();
+    }
+
+    private void initializeFields() {
         mAuth = FirebaseAuth.getInstance();
 
-        RootRef = FirebaseDatabase.getInstance().getReference();
+        rootRef = FirebaseDatabase.getInstance().getReference();
         mToolbar = findViewById(R.id.main_page_toolbar);
+        myViewPager = findViewById(R.id.main_tab_pager);
+        myTabsAccessorAdapter = new TabsAccessorAdapter(getSupportFragmentManager());
+        myTabLayout = findViewById(R.id.main_tabs);
+
+        // setup toolbar
         setSupportActionBar(mToolbar);
         getSupportActionBar().setTitle("ChatApp");
 
-        myViewPager = findViewById(R.id.main_tab_pager);
-        mytabsAccessorAdapter = new TabsAccessorAdapter(getSupportFragmentManager());
-        myViewPager.setAdapter(mytabsAccessorAdapter);
+        // setup option menu
+        myViewPager.setAdapter(myTabsAccessorAdapter);
 
-        myTabLayout = findViewById(R.id.main_tabs);
+        // setup layout
         myTabLayout.setupWithViewPager(myViewPager);
     }
 
@@ -78,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-
         super.onStop();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
@@ -88,20 +94,18 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-
         super.onDestroy();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             updateUserStatus("offline");
         }
-
     }
 
 
     private void VerifyUserExistence() {
 
         String currentUserID = mAuth.getCurrentUser().getUid();
-        RootRef.child("Users").child(currentUserID).addValueEventListener(new ValueEventListener() {
+        rootRef.child("Users").child(currentUserID).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -135,10 +139,9 @@ public class MainActivity extends AppCompatActivity {
         // menu item
         if (item.getItemId() == R.id.main_logout_option) {
             updateUserStatus("offline");
-            mAuth.signOut();
-
 
             //  LogOutUser();
+            mAuth.signOut();
             SendUserToLoginActivity();
         }
 
@@ -146,12 +149,8 @@ public class MainActivity extends AppCompatActivity {
             SendUserToSettingsActivity();
         }
 
-
         if (item.getItemId() == R.id.main_create_group_option) {
-
-
             RequestNewGroup();
-
         }
 
         if (item.getItemId() == R.id.main_find_friends_option) {
@@ -210,17 +209,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void CreateNewGroup(final String groupName) {
-        RootRef.child("Groups").child(groupName).setValue("").addOnCompleteListener(task -> {
+        rootRef.child("Groups").child(groupName).setValue("").addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Toast.makeText(MainActivity.this, groupName + "Group is Created Successfully", Toast.LENGTH_SHORT).show();
             }
-
         });
     }
 
 
     private void SendUserToLoginActivity() {
-
         Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
         loginIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(loginIntent);
@@ -229,25 +226,16 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void SendUserToSettingsActivity() {
-
         Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
-
-
         startActivity(settingsIntent);
-
     }
 
     private void SendUserToFriendsActivity() {
-
-        Intent findfriendsIntent = new Intent(MainActivity.this, FindFriendsActivity.class);
-
-
-        startActivity(findfriendsIntent);
-
+        Intent findFriendsIntent = new Intent(MainActivity.this, FindFriendsActivity.class);
+        startActivity(findFriendsIntent);
     }
 
     private void updateUserStatus(String state) {
-
         String saveCurrentTime, saveCurrentDate;
 
         Calendar calendar = Calendar.getInstance();
@@ -263,8 +251,6 @@ public class MainActivity extends AppCompatActivity {
         onlineStateMap.put("state", state);
 
         currentUserID = mAuth.getCurrentUser().getUid();
-        RootRef.child("Users").child(currentUserID).child("userState").updateChildren(onlineStateMap);
+        rootRef.child("Users").child(currentUserID).child("userState").updateChildren(onlineStateMap);
     }
-
-
 }

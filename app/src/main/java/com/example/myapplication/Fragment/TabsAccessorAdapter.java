@@ -1,8 +1,13 @@
-package com.example.myapplication;
+package com.example.myapplication.Fragment;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
+
+import com.example.myapplication.Fragment.ChatsFragment;
+import com.example.myapplication.Fragment.ContactsFragment;
+import com.example.myapplication.Fragment.GroupsFragment;
+import com.example.myapplication.Fragment.RequestsFragment;
 
 // TODO: switch to ViewPager2 and androidx.viewpager2.adapter.FragmentStateAdapter
 public class TabsAccessorAdapter extends FragmentStatePagerAdapter {

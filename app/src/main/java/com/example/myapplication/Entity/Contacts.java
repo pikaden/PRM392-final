@@ -3,11 +3,11 @@ package com.example.myapplication.Entity;
 public class Contacts {
 
 
-    public String name, status, image, url;
+    public String name, status, image;
 
     public Contacts() {}
 
-    public Contacts(String name, String status, String image, String url) {
+    public Contacts(String name, String status, String image) {
         this.name = name;
         this.status = status;
         this.image = image;

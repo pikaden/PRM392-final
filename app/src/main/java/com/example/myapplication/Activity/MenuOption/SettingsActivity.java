@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.myapplication.Activity.MenuOption;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -15,7 +15,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.example.myapplication.Entity.Users;
+import com.example.myapplication.MainActivity;
+import com.example.myapplication.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;

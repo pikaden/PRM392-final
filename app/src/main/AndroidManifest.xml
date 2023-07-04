@@ -20,24 +20,24 @@
             android:name=".Activity.Login.EmailLoginActivity"
             android:parentActivityName=".MainActivity" />
         <activity
-            android:name=".about"
+            android:name=".Activity.MenuOption.about"
             android:parentActivityName=".MainActivity" />
-        <activity android:name=".imageViewerActivity" />
+        <activity android:name=".Activity.Screen.SingleChat.imageViewerActivity" />
         <activity
-            android:name=".ChatActivity"
+            android:name=".Activity.Screen.SingleChat.ChatActivity"
             android:parentActivityName=".MainActivity" />
-        <activity android:name=".ProfileActivity" />
+        <activity android:name=".Activity.MenuOption.ProfileActivity" />
         <activity
-            android:name=".FindFriendsActivity"
+            android:name=".Activity.MenuOption.FindFriendsActivity"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".Activity.Login.PhoneLoginActivity"
             android:parentActivityName=".MainActivity" />
         <activity
-            android:name=".GroupChatActivity"
+            android:name=".Activity.Screen.GroupChatActivity"
             android:parentActivityName=".MainActivity" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".Activity.MenuOption.SettingsActivity"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".Activity.Signup.SignupActivity"
