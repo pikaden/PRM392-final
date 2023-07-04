@@ -1,8 +1,5 @@
 package com.example.myapplication;
 
-
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,8 +16,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.Entity.Contacts;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -37,9 +32,9 @@ import de.hdodenhof.circleimageview.CircleImageView;
  */
 public class RequestsFragment extends Fragment {
 
-    private View RequestsFragmentView;
+    private View requestsFragmentView;
     private RecyclerView myRequestsList;
-    private DatabaseReference ChatRequestsRef, UserRef, ContactRef;
+    private DatabaseReference chatRequestsRef, userRef, contactRef;
     private FirebaseAuth mAuth;
     private String currentUserID;
 
@@ -47,23 +42,22 @@ public class RequestsFragment extends Fragment {
         // Required empty public constructor
     }
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        RequestsFragmentView = inflater.inflate(R.layout.fragment_requests, container, false);
+        requestsFragmentView = inflater.inflate(R.layout.fragment_requests, container, false);
 
         mAuth = FirebaseAuth.getInstance();
         currentUserID = mAuth.getCurrentUser().getUid();
-        UserRef = FirebaseDatabase.getInstance().getReference().child("Users");
+        userRef = FirebaseDatabase.getInstance().getReference().child("Users");
 
-        ChatRequestsRef = FirebaseDatabase.getInstance().getReference().child("Chat Requests");
-        ContactRef = FirebaseDatabase.getInstance().getReference().child("Contacts");
+        chatRequestsRef = FirebaseDatabase.getInstance().getReference().child("Chat Requests");
+        contactRef = FirebaseDatabase.getInstance().getReference().child("Contacts");
 
-        myRequestsList = (RecyclerView) RequestsFragmentView.findViewById(R.id.chat_requests_list);
+        myRequestsList = (RecyclerView) requestsFragmentView.findViewById(R.id.chat_requests_list);
         myRequestsList.setLayoutManager(new LinearLayoutManager(getContext()));
-        return RequestsFragmentView;
+        return requestsFragmentView;
     }
 
     @Override
@@ -71,7 +65,7 @@ public class RequestsFragment extends Fragment {
         super.onStart();
 
         FirebaseRecyclerOptions<Contacts> options =
-                new FirebaseRecyclerOptions.Builder<Contacts>().setQuery(ChatRequestsRef.child(currentUserID), Contacts.class).build();
+                new FirebaseRecyclerOptions.Builder<Contacts>().setQuery(chatRequestsRef.child(currentUserID), Contacts.class).build();
 
         FirebaseRecyclerAdapter<Contacts, RequestViewHolder> adapter =
                 new FirebaseRecyclerAdapter<Contacts, RequestViewHolder>(options) {
@@ -91,7 +85,7 @@ public class RequestsFragment extends Fragment {
                                 if (dataSnapshot.exists()) {
                                     String type = dataSnapshot.getValue().toString();
                                     if (type.equals("received")) {
-                                        UserRef.child(list_user_id).addValueEventListener(new ValueEventListener() {
+                                        userRef.child(list_user_id).addValueEventListener(new ValueEventListener() {
                                             @Override
                                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                                 if (dataSnapshot.hasChild("image")) {
@@ -108,99 +102,11 @@ public class RequestsFragment extends Fragment {
                                                 holder.userName.setText(requestUserName);
                                                 holder.userStatus.setText("Wants To Connect With You");
 
+                                                // accept friend request
+                                                holder.acceptButton.setOnClickListener(v -> acceptFriendRequest(list_user_id));
 
-                                                holder.itemView.setOnClickListener(new View.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(View v) {
-                                                        CharSequence options[] = new CharSequence[]
-                                                                {
-                                                                        "Accept",
-                                                                        "Cancel"
-                                                                };
-                                                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                                                        builder.setTitle(requestUserName + " Chat Request");
-
-
-                                                        builder.setItems(options, new DialogInterface.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(DialogInterface dialogInterface, int i) {
-                                                                if (i == 0) {
-                                                                    ContactRef.child(currentUserID).child(list_user_id).child("Contact").setValue("Saved").addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                        @Override
-                                                                        public void onComplete(@NonNull Task<Void> task) {
-                                                                            if (task.isSuccessful()) {
-
-
-                                                                                ContactRef.child(list_user_id).child(currentUserID).child("Contact").setValue("Saved").addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                                    @Override
-                                                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                                                        if (task.isSuccessful()) {
-
-                                                                                            ChatRequestsRef.child(currentUserID).child(list_user_id).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                                                @Override
-                                                                                                public void onComplete(@NonNull Task<Void> task) {
-                                                                                                    if (task.isSuccessful()) {
-
-                                                                                                        ChatRequestsRef.child(list_user_id).child(currentUserID).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                                                            @Override
-                                                                                                            public void onComplete(@NonNull Task<Void> task) {
-                                                                                                                if (task.isSuccessful()) {
-                                                                                                                    Toast.makeText(getContext(), "Now,You Are A Friend", Toast.LENGTH_SHORT).show();
-                                                                                                                }
-
-                                                                                                            }
-                                                                                                        });
-
-
-                                                                                                    }
-
-                                                                                                }
-                                                                                            });
-                                                                                        }
-
-                                                                                    }
-                                                                                });
-
-
-                                                                            }
-
-                                                                        }
-                                                                    });
-                                                                }
-                                                                if (i == 1) {
-
-
-                                                                    ChatRequestsRef.child(currentUserID).child(list_user_id).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                        @Override
-                                                                        public void onComplete(@NonNull Task<Void> task) {
-                                                                            if (task.isSuccessful()) {
-
-                                                                                ChatRequestsRef.child(list_user_id).child(currentUserID).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                                    @Override
-                                                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                                                        if (task.isSuccessful()) {
-                                                                                            Toast.makeText(getContext(), "Friend Request Deleted", Toast.LENGTH_SHORT).show();
-                                                                                        }
-
-                                                                                    }
-                                                                                });
-
-
-                                                                            }
-
-                                                                        }
-                                                                    });
-
-
-                                                                }
-
-                                                            }
-                                                        });
-
-                                                        builder.show();
-                                                    }
-                                                });
-
+                                                // cancel friend request
+                                                holder.cancelButton.setOnClickListener(v -> deleteFriendRequest(list_user_id));
                                             }
 
                                             @Override
@@ -209,18 +115,15 @@ public class RequestsFragment extends Fragment {
                                             }
                                         });
                                     } else if (type.equals("sent")) {
-                                        Button request_sent_btn = holder.itemView.findViewById(R.id.request_accept_btn);
-                                        request_sent_btn.setText("Request Sent");
+                                        Button request_sent_btn = holder.acceptButton;
+                                        request_sent_btn.setText("Cancel request");
                                         holder.itemView.findViewById(R.id.request_cancel_btn).setVisibility(View.INVISIBLE);
 
-
-                                        UserRef.child(list_user_id).addValueEventListener(new ValueEventListener() {
+                                        userRef.child(list_user_id).addValueEventListener(new ValueEventListener() {
                                             @Override
                                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                                 if (dataSnapshot.hasChild("image")) {
-
                                                     final String requestProfileImage = dataSnapshot.child("image").getValue().toString();
-
 
                                                     Picasso.get().load(requestProfileImage).into(holder.profileImage);
                                                 }
@@ -229,59 +132,10 @@ public class RequestsFragment extends Fragment {
                                                 final String requestUserStatus = dataSnapshot.child("status").getValue().toString();
 
                                                 holder.userName.setText(requestUserName);
-                                                holder.userStatus.setText("You have sent Friend Request " + requestUserName);
+                                                holder.userStatus.setText("You have sent Friend Request to " + requestUserName);
 
-
-                                                holder.itemView.setOnClickListener(new View.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(View v) {
-                                                        CharSequence options[] = new CharSequence[]
-                                                                {
-
-                                                                        "Cancel Friend Request"
-                                                                };
-                                                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                                                        builder.setTitle(" Already Sent Friend Request");
-
-
-                                                        builder.setItems(options, new DialogInterface.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(DialogInterface dialogInterface, int i) {
-
-                                                                if (i == 0) {
-
-
-                                                                    ChatRequestsRef.child(currentUserID).child(list_user_id).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                        @Override
-                                                                        public void onComplete(@NonNull Task<Void> task) {
-                                                                            if (task.isSuccessful()) {
-
-                                                                                ChatRequestsRef.child(list_user_id).child(currentUserID).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                                    @Override
-                                                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                                                        if (task.isSuccessful()) {
-                                                                                            Toast.makeText(getContext(), "Friend Request Deleted", Toast.LENGTH_SHORT).show();
-                                                                                        }
-
-                                                                                    }
-                                                                                });
-
-
-                                                                            }
-
-                                                                        }
-                                                                    });
-
-
-                                                                }
-
-                                                            }
-                                                        });
-
-                                                        builder.show();
-                                                    }
-                                                });
-
+                                                // cancel friend request
+                                                holder.acceptButton.setOnClickListener(v -> cancelFriendRequest(list_user_id));
                                             }
 
                                             @Override
@@ -289,30 +143,85 @@ public class RequestsFragment extends Fragment {
 
                                             }
                                         });
-
-
                                     }
                                 }
                             }
+
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) {
 
                             }
                         });
                     }
+
                     @NonNull
                     @Override
                     public RequestViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-
-
                         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.users_display_layout, viewGroup, false);
                         RequestViewHolder holder = new RequestViewHolder(view);
                         return holder;
-
                     }
                 };
         myRequestsList.setAdapter(adapter);
         adapter.startListening();
+    }
+
+    /**
+     * user can cancel friend request
+     * @param list_user_id
+     */
+    private void cancelFriendRequest(String list_user_id) {
+        chatRequestsRef.child(currentUserID).child(list_user_id).removeValue().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                chatRequestsRef.child(list_user_id).child(currentUserID).removeValue().addOnCompleteListener(task13 -> {
+                    if (task13.isSuccessful()) {
+                        Toast.makeText(getContext(), "Friend Request Deleted", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * receiver can cancel friend request
+     * @param list_user_id
+     */
+    private void deleteFriendRequest(String list_user_id) {
+        chatRequestsRef.child(currentUserID).child(list_user_id).removeValue().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                chatRequestsRef.child(list_user_id).child(currentUserID).removeValue().addOnCompleteListener(task12 -> {
+                    if (task12.isSuccessful()) {
+                        Toast.makeText(getContext(), "Friend Request Deleted", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * receiver can accept friend request
+     * @param list_user_id
+     */
+    private void acceptFriendRequest(String list_user_id) {
+        contactRef.child(currentUserID).child(list_user_id).child("Contact").setValue("Saved").addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                contactRef.child(list_user_id).child(currentUserID).child("Contact").setValue("Saved").addOnCompleteListener(task1 -> {
+                    if (task1.isSuccessful()) {
+
+                        chatRequestsRef.child(currentUserID).child(list_user_id).removeValue().addOnCompleteListener(task11 -> {
+                            if (task11.isSuccessful()) {
+
+                                chatRequestsRef.child(list_user_id).child(currentUserID).removeValue().addOnCompleteListener(task111 -> {
+                                    if (task111.isSuccessful()) {
+                                        Toast.makeText(getContext(), "Now,You Are A Friend", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 
 
@@ -320,7 +229,7 @@ public class RequestsFragment extends Fragment {
 
         TextView userName, userStatus;
         CircleImageView profileImage;
-        Button AcceptButton, CancelButton;
+        Button acceptButton, cancelButton;
 
         public RequestViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -330,11 +239,9 @@ public class RequestsFragment extends Fragment {
 
             profileImage = itemView.findViewById(R.id.users_profile_image);
 
-            AcceptButton = itemView.findViewById(R.id.request_accept_btn);
+            acceptButton = itemView.findViewById(R.id.request_accept_btn);
 
-            CancelButton = itemView.findViewById(R.id.request_cancel_btn);
-
-
+            cancelButton = itemView.findViewById(R.id.request_cancel_btn);
         }
     }
 
