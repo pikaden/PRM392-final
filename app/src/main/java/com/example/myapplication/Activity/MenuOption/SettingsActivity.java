@@ -33,7 +33,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private Button UpdateAccountSettings;
+    private Button updateAccountSettings, changePasswordSetting;
     private EditText name, status;
     private CircleImageView userProfileImage;
     private FirebaseAuth mAuth;
@@ -54,9 +54,10 @@ public class SettingsActivity extends AppCompatActivity {
 
         UserProfileImageRef = FirebaseStorage.getInstance().getReference().child("ProfileImages");
 
-        InitializeFields();
+        initializeFields();
 
-        UpdateAccountSettings.setOnClickListener(view -> UpdateSettings());
+        updateAccountSettings.setOnClickListener(view -> updateSettings());
+        changePasswordSetting.setOnClickListener(view -> openChangePassword());
 
         RetrieveUserInfo();
 
@@ -72,9 +73,15 @@ public class SettingsActivity extends AppCompatActivity {
         });
     }
 
-    private void InitializeFields() {
+    public void openChangePassword() {
+        Intent intent = new Intent(this, ChangePassword.class);
+        startActivity(intent);
+    }
 
-        UpdateAccountSettings = findViewById(R.id.update_settings_button);
+    private void initializeFields() {
+
+        updateAccountSettings = findViewById(R.id.update_settings_button);
+        changePasswordSetting = findViewById(R.id.password_change_button);
         name = findViewById(R.id.name);
         status = findViewById(R.id.status);
         userProfileImage = findViewById(R.id.set_profile_image);
@@ -125,7 +132,7 @@ public class SettingsActivity extends AppCompatActivity {
                 });
     }
 
-    private void UpdateSettings() {
+    private void updateSettings() {
         String userName = name.getText().toString();
 
         String userStatus = status.getText().toString();
