@@ -17,6 +17,9 @@
         android:theme="@style/Theme.MyApplication"
         tools:targetApi="31">
         <activity
+            android:name=".Activity.MenuOption.ChangePassword"
+            android:parentActivityName=".MainActivity" />
+        <activity
             android:name=".Activity.Login.EmailLoginActivity"
             android:parentActivityName=".MainActivity" />
         <activity
