@@ -178,19 +178,14 @@ public class MainActivity extends AppCompatActivity {
         groupNameField.setHint("e.g MTech 2017");
         builder.setView(groupNameField);
 
-        builder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                String groupName = groupNameField.getText().toString();
-                if (TextUtils.isEmpty(groupName)) {
-                    Toast.makeText(MainActivity.this, "Enter Group Name", Toast.LENGTH_SHORT).show();
-                } else {
-                    CreateNewGroup(groupName);
+        builder.setPositiveButton("Create", (dialogInterface, i) -> {
+            String groupName = groupNameField.getText().toString();
+            if (TextUtils.isEmpty(groupName)) {
+                Toast.makeText(MainActivity.this, "Enter Group Name", Toast.LENGTH_SHORT).show();
+            } else {
+                CreateNewGroup(groupName);
 
-                }
             }
-
-
         });
 
 

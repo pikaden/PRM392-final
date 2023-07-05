@@ -62,16 +62,13 @@ public class FindFriendsActivity extends AppCompatActivity {
                         holder.userStatus.setText(model.getStatus());
                         Picasso.get().load(model.getImage()).placeholder(R.drawable.profile_image).into(holder.profileImage);
 
-                        holder.itemView.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
+                        holder.itemView.setOnClickListener(view -> {
 
-                                String visit_user_id = getRef(position).getKey();
+                            String visit_user_id = getRef(position).getKey();
 
-                                Intent profileIntent = new Intent(FindFriendsActivity.this, ProfileActivity.class);
-                                profileIntent.putExtra("visit_user_id", visit_user_id);
-                                startActivity(profileIntent);
-                            }
+                            Intent profileIntent = new Intent(FindFriendsActivity.this, ProfileActivity.class);
+                            profileIntent.putExtra("visit_user_id", visit_user_id);
+                            startActivity(profileIntent);
                         });
 
                     }

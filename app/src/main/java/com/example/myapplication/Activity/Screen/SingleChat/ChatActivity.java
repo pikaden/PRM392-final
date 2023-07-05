@@ -8,6 +8,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -50,6 +52,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -69,6 +73,8 @@ public class ChatActivity extends AppCompatActivity {
     private ProgressDialog loadingBar;
     private String saveCurrentTime, saveCurrentDate;
     private String checker = "", myUrl = "";
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -193,6 +199,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private void initializeControllers() {
 
+        // back button
         ChatToolBar = (Toolbar) findViewById(R.id.chat_toolbar);
         setSupportActionBar(ChatToolBar);
         ActionBar actionBar = getSupportActionBar();
@@ -235,22 +242,24 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.child("userState").hasChild("state")) {
-                    String state = dataSnapshot.child("userState").child("state").getValue().toString();
-                    String date = dataSnapshot.child("userState").child("date").getValue().toString();
-                    String time = dataSnapshot.child("userState").child("time").getValue().toString();
-
-                    if (state.equals("online")) {
-                        userLastSeen.setText("online");
-
-                    } else if (state.equals("offline")) {
-                        userLastSeen.setText(date + " " + time);
-                    }
-
-
+                    // async task to get image from cloud server
+                    executor.execute(() -> {
+                        //Background work here
+                        String state = dataSnapshot.child("userState").child("state").getValue().toString();
+                        String date = dataSnapshot.child("userState").child("date").getValue().toString();
+                        String time = dataSnapshot.child("userState").child("time").getValue().toString();
+                        handler.post(() -> {
+                            //UI Thread work here
+                            if (state.equals("online")) {
+                                userLastSeen.setText("online");
+                            } else if (state.equals("offline")) {
+                                userLastSeen.setText(date + " " + time);
+                            }
+                        });
+                    });
                 } else {
                     userLastSeen.setText("offline");
                 }
-
             }
 
             @Override
@@ -272,8 +281,6 @@ public class ChatActivity extends AppCompatActivity {
                 messageAdapter.notifyDataSetChanged();
 
                 userMessagesList.smoothScrollToPosition(userMessagesList.getAdapter().getItemCount());
-
-
             }
 
             @Override

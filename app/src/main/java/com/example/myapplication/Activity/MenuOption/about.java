@@ -43,7 +43,7 @@ public class about extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
-                emailIntent.setData(Uri.parse("mailto:phamngocnhan8@gmail.com"));
+                emailIntent.setData(Uri.parse("mailto:fakegmail@gmail.com"));
                 startActivity(Intent.createChooser(emailIntent, "feedback"));
             }
         });

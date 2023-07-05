@@ -3,6 +3,8 @@ package com.example.myapplication.Activity.MenuOption;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -28,6 +30,8 @@ import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -42,6 +46,8 @@ public class SettingsActivity extends AppCompatActivity {
     private StorageReference UserProfileImageRef;
     private ProgressBar progressBar;
     private Toolbar SettingsToolBar;
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,24 +170,32 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if ((dataSnapshot.exists()) && (dataSnapshot.hasChild("name") && (dataSnapshot.hasChild("image")))) {
-                    String retrieveUserName = dataSnapshot.child("name").getValue().toString();
-                    String retrievesStatus = dataSnapshot.child("status").getValue().toString();
-                    String retrieveProfileImage = dataSnapshot.child("image").getValue().toString();
+                    // async task to get information from cloud server
+                    executor.execute(() -> {
+                        //Background work here
+                        String retrieveUserName = dataSnapshot.child("name").getValue().toString();
+                        String retrievesStatus = dataSnapshot.child("status").getValue().toString();
+                        String retrieveProfileImage = dataSnapshot.child("image").getValue().toString();
+                        handler.post(() -> {
+                            //UI Thread work here
+                            name.setText(retrieveUserName);
+                            status.setText(retrievesStatus);
 
-                    name.setText(retrieveUserName);
-                    status.setText(retrievesStatus);
-
-                    Picasso.get().load(retrieveProfileImage).into(userProfileImage);
-
+                            Picasso.get().load(retrieveProfileImage).into(userProfileImage);
+                        });
+                    });
                 } else if ((dataSnapshot.exists()) && (dataSnapshot.hasChild("name"))) {
-
-                    String retrieveUserName = dataSnapshot.child("name").getValue().toString();
-                    String retrievesStatus = dataSnapshot.child("status").getValue().toString();
-
-
-                    name.setText(retrieveUserName);
-                    status.setText(retrievesStatus);
-
+                    // async task to get information from cloud server
+                    executor.execute(() -> {
+                        //Background work here
+                        String retrieveUserName = dataSnapshot.child("name").getValue().toString();
+                        String retrievesStatus = dataSnapshot.child("status").getValue().toString();
+                        handler.post(() -> {
+                            //UI Thread work here
+                            name.setText(retrieveUserName);
+                            status.setText(retrievesStatus);
+                        });
+                    });
                 } else {
                     Toast.makeText(SettingsActivity.this, "Update Your Profile", Toast.LENGTH_SHORT).show();
                 }
@@ -196,12 +210,9 @@ public class SettingsActivity extends AppCompatActivity {
 
 
     private void SendUserToMainActivity() {
-
         Intent mainIntent = new Intent(SettingsActivity.this, MainActivity.class);
         mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(mainIntent);
         finish();
-
     }
-
 }

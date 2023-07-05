@@ -3,6 +3,8 @@ package com.example.myapplication.Fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +27,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -82,8 +87,18 @@ public class ChatsFragment extends Fragment {
                                 if (dataSnapshot.exists()) {
 
                                     if (dataSnapshot.hasChild("image")) {
-                                        ujjuImage[0] = dataSnapshot.child("image").getValue().toString();
-                                        Picasso.get().load(ujjuImage[0]).into(holder.profileImage);
+                                        // async task to get image from cloud server
+                                        ExecutorService executor = Executors.newSingleThreadExecutor();
+                                        Handler handler = new Handler(Looper.getMainLooper());
+
+                                        executor.execute(() -> {
+                                            //Background work here
+                                            ujjuImage[0] = dataSnapshot.child("image").getValue().toString();
+                                            handler.post(() -> {
+                                                //UI Thread work here
+                                                Picasso.get().load(ujjuImage[0]).into(holder.profileImage);
+                                            });
+                                        });
                                     }
 
                                     final String ujjuName = dataSnapshot.child("name").getValue().toString();
