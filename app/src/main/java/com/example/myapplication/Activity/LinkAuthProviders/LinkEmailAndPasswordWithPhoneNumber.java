@@ -166,7 +166,7 @@ public class LinkEmailAndPasswordWithPhoneNumber extends AppCompatActivity {
                         sendUserToMainActivity();
                     } else {
                         // This credential is already associated with a different user account
-                        Log.w(TAG, "This credential: " + credential +"is already associated with a different user account", task.getException());
+                        Log.w(TAG, "This credential: " + credential +" is already associated with a different user account", task.getException());
                         Toast.makeText(LinkEmailAndPasswordWithPhoneNumber.this, "This phone number is already associated with a different user account",
                                 Toast.LENGTH_LONG).show();
 

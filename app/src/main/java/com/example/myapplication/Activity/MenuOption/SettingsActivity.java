@@ -17,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.myapplication.Activity.LinkAuthProviders.LinkEmailAndPasswordWithPhoneNumber;
 import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,7 +38,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private Button updateAccountSettings, changePasswordSetting;
+    private Button updateAccountSettings, changePasswordSetting, linkAccountButton;
     private EditText name, status;
     private CircleImageView userProfileImage;
     private FirebaseAuth mAuth;
@@ -54,16 +55,11 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        mAuth = FirebaseAuth.getInstance();
-        currentUserID = mAuth.getCurrentUser().getUid();
-        RootRef = FirebaseDatabase.getInstance().getReference();
-
-        UserProfileImageRef = FirebaseStorage.getInstance().getReference().child("ProfileImages");
-
         initializeFields();
 
         updateAccountSettings.setOnClickListener(view -> updateSettings());
         changePasswordSetting.setOnClickListener(view -> openChangePassword());
+        linkAccountButton.setOnClickListener(view -> openLinkAccount());
 
         RetrieveUserInfo();
 
@@ -79,15 +75,26 @@ public class SettingsActivity extends AppCompatActivity {
         });
     }
 
+    private void openLinkAccount() {
+        Intent intent = new Intent(this, LinkEmailAndPasswordWithPhoneNumber.class);
+        startActivity(intent);
+    }
+
     public void openChangePassword() {
         Intent intent = new Intent(this, ChangePassword.class);
         startActivity(intent);
     }
 
     private void initializeFields() {
+        mAuth = FirebaseAuth.getInstance();
+        currentUserID = mAuth.getCurrentUser().getUid();
+        RootRef = FirebaseDatabase.getInstance().getReference();
+
+        UserProfileImageRef = FirebaseStorage.getInstance().getReference().child("ProfileImages");
 
         updateAccountSettings = findViewById(R.id.update_settings_button);
         changePasswordSetting = findViewById(R.id.password_change_button);
+        linkAccountButton = findViewById(R.id.link_account_button);
         name = findViewById(R.id.name);
         status = findViewById(R.id.status);
         userProfileImage = findViewById(R.id.set_profile_image);

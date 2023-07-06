@@ -4,6 +4,7 @@ import static android.content.ContentValues.TAG;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -36,7 +37,18 @@ public class SignupActivity extends AppCompatActivity {
 
         signUpByEmailButton.setOnClickListener(v -> {
             isDisable(true);
-            signUpByEmail(inputEmail.getText().toString(), inputPassword.getText().toString());
+            String newEmail = inputEmail.getText().toString().trim();
+            String newPassword = inputPassword.getText().toString().trim();
+
+            if (TextUtils.isEmpty(newEmail)) {
+                Toast.makeText(this, "Enter your email", Toast.LENGTH_SHORT).show();
+                isDisable(false);
+            } else if (newPassword.length() < 6) {
+                Toast.makeText(this, "Your new Password must > 6", Toast.LENGTH_SHORT).show();
+                isDisable(false);
+            } else {
+                signUpByEmail(inputEmail.getText().toString(), inputPassword.getText().toString());
+            }
         });
     }
 

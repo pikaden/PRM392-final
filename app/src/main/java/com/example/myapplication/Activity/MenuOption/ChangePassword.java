@@ -47,11 +47,11 @@ public class ChangePassword extends AppCompatActivity {
             String newP = newPassword.getText().toString().trim();
             if (TextUtils.isEmpty(currentP)) {
                 Toast.makeText(this, "Enter your current Password", Toast.LENGTH_SHORT).show();
-            }
-            if (newP.length() < 6) {
+            } else if (newP.length() < 6) {
                 Toast.makeText(this, "Your new Password must > 6", Toast.LENGTH_SHORT).show();
+            } else {
+                changePassword(currentP, newP);
             }
-            changePassword(currentP, newP);
         });
     }
 
@@ -72,12 +72,10 @@ public class ChangePassword extends AppCompatActivity {
     private void changePassword(String currentPassword, String newPassword) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         AuthCredential authCredential = EmailAuthProvider.getCredential(user.getEmail(), currentPassword);
-        user.reauthenticate(authCredential).addOnSuccessListener(v -> {
-            user.updatePassword(newPassword).addOnSuccessListener(v1 -> {
-                SendUserToMainActivity();
-                Toast.makeText(this, "Change Password Success", Toast.LENGTH_SHORT).show();
-            });
-        });
+        user.reauthenticate(authCredential).addOnSuccessListener(v -> user.updatePassword(newPassword).addOnSuccessListener(v1 -> {
+            SendUserToMainActivity();
+            Toast.makeText(this, "Change Password Success", Toast.LENGTH_SHORT).show();
+        })).addOnFailureListener(command -> Toast.makeText(this, "Change Password Failed, check your current password", Toast.LENGTH_SHORT).show());
     }
 
     private void SendUserToMainActivity() {
