@@ -169,8 +169,6 @@ public class RequestsFragment extends Fragment {
                                                                     });
                                                                 }
                                                                 if (i == 1) {
-
-
                                                                     ChatRequestsRef.child(currentUserID).child(list_user_id).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
                                                                         @Override
                                                                         public void onComplete(@NonNull Task<Void> task) {

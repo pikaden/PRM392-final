@@ -37,6 +37,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
+import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
@@ -120,6 +121,14 @@ public class ChatActivity extends AppCompatActivity {
                             intent.setType("image/*");
                             startActivityForResult(intent.createChooser(intent, "Select Image"), 438);
                         }
+                        if (i == 1) {
+                            // Code for selecting and sending documents (PDF in this case)
+                            checker = "pdf";
+                            Intent intent = new Intent();
+                            intent.setAction(Intent.ACTION_GET_CONTENT);
+                            intent.setType("application/pdf");
+                            startActivityForResult(intent.createChooser(intent, "Select PDF"), 438);
+                        }
                         if (i == 2) {
 
                             checker = "docx";
@@ -191,8 +200,63 @@ public class ChatActivity extends AppCompatActivity {
             loadingBar.show();
             fileUri = data.getData();
 
-            if (!checker.equals("image")) {
+            if (checker.equals("pdf")) {
+                StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("Document Files");
 
+                final String messageSenderRef = "Messages/" + messageSenderID + "/" + messageReceiverID;
+                final String messageReceiverRef = "Messages/" + messageReceiverID + "/" + messageSenderID;
+
+                DatabaseReference userMessageKeyRef = RootRef.child("Messages").child(messageSenderID).child(messageReceiverID).push();
+                final String messagePushID = userMessageKeyRef.getKey();
+
+                final StorageReference filePath = storageReference.child(messagePushID + ".pdf");
+
+                uploadTask = filePath.putFile(fileUri);
+
+                uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                    @Override
+                    public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                        if (!task.isSuccessful()) {
+                            throw task.getException();
+                        }
+                        return filePath.getDownloadUrl();
+                    }
+                }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Uri> task) {
+                        if (task.isSuccessful()) {
+                            Uri downloadUrl = task.getResult();
+                            myUrl = downloadUrl.toString();
+
+                            Map<String, Object> messageDocBody = new HashMap<>();
+                            messageDocBody.put("message", myUrl);
+                            messageDocBody.put("name", fileUri.getLastPathSegment());
+                            messageDocBody.put("type", checker);
+                            messageDocBody.put("from", messageSenderID);
+                            messageDocBody.put("to", messageReceiverID);
+                            messageDocBody.put("messageID", messagePushID);
+                            messageDocBody.put("time", saveCurrentTime);
+                            messageDocBody.put("date", saveCurrentDate);
+
+                            Map<String, Object> messageBodyDetails = new HashMap<>();
+                            messageBodyDetails.put(messageSenderRef + "/" + messagePushID, messageDocBody);
+                            messageBodyDetails.put(messageReceiverRef + "/" + messagePushID, messageDocBody);
+
+                            RootRef.updateChildren(messageBodyDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        loadingBar.dismiss();
+                                        MessageInputText.setText("");
+                                    } else {
+                                        loadingBar.dismiss();
+                                        Toast.makeText(ChatActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
             } else if (checker.equals("image")) {
                 StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("Image Files");
 
