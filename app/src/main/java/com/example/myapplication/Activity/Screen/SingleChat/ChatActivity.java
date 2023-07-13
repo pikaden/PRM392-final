@@ -75,6 +75,7 @@ public class ChatActivity extends AppCompatActivity {
     private String checker = "", myUrl = "";
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Handler handler = new Handler(Looper.getMainLooper());
+    private ChildEventListener messageEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -181,17 +182,17 @@ public class ChatActivity extends AppCompatActivity {
                             messageBodyDetails.put(messageSenderRef + "/" + messagePushID, messagepicBody);
                             messageBodyDetails.put(messageReceiverRef + "/" + messagePushID, messagepicBody);
 
-                            RootRef.updateChildren(messageBodyDetails).addOnCompleteListener((OnCompleteListener<Void>) task1 -> {
+                            RootRef.updateChildren(messageBodyDetails)
+                                    .addOnCompleteListener(task1 -> {
                                 if (task1.isSuccessful()) {
-                                    loadingBar.dismiss();
-
                                     Toast.makeText(ChatActivity.this,"Message Sent Successfully",Toast.LENGTH_SHORT).show();
                                 } else {
-                                    loadingBar.dismiss();
                                     Toast.makeText(ChatActivity.this, "Error", Toast.LENGTH_SHORT).show();
                                 }
-                                MessageInputText.setText("");
                             });
+
+                            loadingBar.dismiss();
+                            MessageInputText.setText("");
                         }));
                     }
                 });
@@ -269,13 +270,27 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onStop() {
+        // Remove post value event listener
+        if (messageEventListener != null && RootRef != null) {
+            RootRef.child("Messages").child(messageSenderID).child(messageReceiverID).removeEventListener(messageEventListener);
+        }
+        super.onStop();
+    }
 
     @Override
     protected void onStart() {
         super.onStart();
-        RootRef.child("Messages").child(messageSenderID).child(messageReceiverID).addChildEventListener(new ChildEventListener() {
+        Log.d(TAG, "Hey, we are onStart!");
+
+        // must clear message list first to prevent duplicate message
+        messagesList.clear();
+
+        messageEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                // this function iterate all data in database and receive new data
                 Messages messages = dataSnapshot.getValue(Messages.class);
                 messagesList.add(messages);
                 messageAdapter.notifyDataSetChanged();
@@ -302,9 +317,9 @@ public class ChatActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-        });
+        };
 
-
+        RootRef.child("Messages").child(messageSenderID).child(messageReceiverID).addChildEventListener(messageEventListener);
     }
 
     private void SendMessage() {
@@ -335,19 +350,16 @@ public class ChatActivity extends AppCompatActivity {
             messageBodyDetails.put(messageSenderRef + "/" + messagePushID, messageTextBody);
             messageBodyDetails.put(messageReceiverRef + "/" + messagePushID, messageTextBody);
 
-            RootRef.updateChildren(messageBodyDetails).addOnCompleteListener(new OnCompleteListener() {
-                @Override
-                public void onComplete(@NonNull Task task) {
+            RootRef.updateChildren(messageBodyDetails)
+                    .addOnCompleteListener(task -> {
 
-                    if (task.isSuccessful()) {
-                        //Toast.makeText(ChatActivity.this,"Message Sent Successfully",Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(ChatActivity.this, "Error", Toast.LENGTH_SHORT).show();
-                    }
-                    MessageInputText.setText("");
+                if (task.isSuccessful()) {
+                    //Toast.makeText(ChatActivity.this,"Message Sent Successfully",Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(ChatActivity.this, "Error", Toast.LENGTH_SHORT).show();
                 }
             });
-
+            MessageInputText.setText("");
         }
     }
 

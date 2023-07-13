@@ -1,5 +1,7 @@
 package com.example.myapplication.Activity.Screen.SingleChat;
 
+import static android.content.ContentValues.TAG;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -7,6 +9,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -86,10 +89,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
         String messageSenderId = mAuth.getCurrentUser().getUid();
         final Messages messages = userMessagesList.get(position);
+        Log.i(TAG, "onBindViewHolder userMessagesList: " + userMessagesList);
 
         String fromUserID = messages.getFrom();
         String fromMessageType = messages.getType();
 
+        // load user avatar
         usersRef = FirebaseDatabase.getInstance().getReference().child("Users").child(fromUserID);
         usersRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -141,6 +146,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
                 messageViewHolder.receiverMessageText.setText(messages.getMessage() + "\n \n" + messages.getTime() + ", " + messages.getDate());
             }
         } else if (fromMessageType.equals("image")) {
+            // if user is also sender
             if (fromUserID.equals(messageSenderId)) {
                 messageViewHolder.messageSenderPicture.setVisibility(View.VISIBLE);
 
@@ -179,7 +185,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
             }
         }
 
-
+        // modify messages
         if (fromUserID.equals(messageSenderId)) {
             messageViewHolder.itemView.setOnClickListener(v -> {
                 if (userMessagesList.get(position).getType().equals("pdf") || userMessagesList.get(position).getType().equals("docs")) {
