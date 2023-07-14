@@ -44,6 +44,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
+import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
@@ -100,6 +101,7 @@ public class ChatActivity extends AppCompatActivity {
         DisplayLastSeen();
 
         ActivityResultLauncher<Intent> startActivityForResult = getImageFromGallery();
+        ActivityResultLauncher<Intent> startActivityForPDFResult = getPDFFromGallery();
 
         SendFilesButton.setOnClickListener(view -> {
             CharSequence options[] = new CharSequence[]
@@ -116,8 +118,17 @@ public class ChatActivity extends AppCompatActivity {
                     Intent galleryIntent = new Intent();
                     galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
                     galleryIntent.setType("image/*");
-
                     startActivityForResult.launch(galleryIntent);
+                }
+                if (i == 1) {
+                    // Code for selecting and sending documents (PDF in this case)
+                    checker = "pdf";
+                    Intent pdfIntent = new Intent();
+                    pdfIntent.setAction(Intent.ACTION_GET_CONTENT);
+                    pdfIntent.setType("application/pdf");
+
+                    startActivityForPDFResult.launch(pdfIntent);
+//                    startActivityForResult(pdfIntent.createChooser(pdfIntent, "Select PDF"), 438);
                 }
                 if (i == 2) {
                     checker = "docx";
@@ -184,15 +195,72 @@ public class ChatActivity extends AppCompatActivity {
 
                             RootRef.updateChildren(messageBodyDetails)
                                     .addOnCompleteListener(task1 -> {
-                                if (task1.isSuccessful()) {
-                                    Toast.makeText(ChatActivity.this,"Message Sent Successfully",Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Toast.makeText(ChatActivity.this, "Error", Toast.LENGTH_SHORT).show();
-                                }
-                            });
+                                        if (task1.isSuccessful()) {
+                                            Toast.makeText(ChatActivity.this, "Message Sent Successfully", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(ChatActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
 
                             loadingBar.dismiss();
                             MessageInputText.setText("");
+                        }));
+                    }
+                });
+    }
+
+    private ActivityResultLauncher<Intent> getPDFFromGallery() {
+        return registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == AppCompatActivity.RESULT_OK) {
+                        loadingBar.setTitle("Send File");
+                        loadingBar.setMessage("Please Wait...");
+                        loadingBar.setCanceledOnTouchOutside(false);
+                        loadingBar.show();
+
+                        Intent data = result.getData();
+                        // get image uri
+                        Uri pdfUri = data.getData();
+
+                        StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("Document Files");
+
+                        final String messageSenderRef = "Messages/" + messageSenderID + "/" + messageReceiverID;
+                        final String messageReceiverRef = "Messages/" + messageReceiverID + "/" + messageSenderID;
+
+                        DatabaseReference userMessageKeyRef = RootRef.child("Messages").child(messageSenderID).child(messageReceiverID).push();
+                        final String messagePushID = userMessageKeyRef.getKey();
+
+                        final StorageReference filePath = storageReference.child(messagePushID + ".pdf");
+
+                        // upload pdf file
+                        filePath.putFile(pdfUri).addOnCompleteListener(taskSnapshot -> filePath.getDownloadUrl().addOnSuccessListener(uri -> {
+                            HashMap<String, String> downloadUrl = new HashMap<>();
+                            myUrl = downloadUrl.toString().valueOf(uri);
+
+                            Map<String, Object> messageDocBody = new HashMap<>();
+                            messageDocBody.put("message", myUrl);
+                            messageDocBody.put("name", uri.getLastPathSegment());
+                            messageDocBody.put("type", checker);
+                            messageDocBody.put("from", messageSenderID);
+                            messageDocBody.put("to", messageReceiverID);
+                            messageDocBody.put("messageID", messagePushID);
+                            messageDocBody.put("time", saveCurrentTime);
+                            messageDocBody.put("date", saveCurrentDate);
+
+                            Map<String, Object> messageBodyDetails = new HashMap<>();
+                            messageBodyDetails.put(messageSenderRef + "/" + messagePushID, messageDocBody);
+                            messageBodyDetails.put(messageReceiverRef + "/" + messagePushID, messageDocBody);
+
+                            RootRef.updateChildren(messageBodyDetails).addOnCompleteListener(task -> {
+                                if (task.isSuccessful()) {
+                                    loadingBar.dismiss();
+                                    MessageInputText.setText("");
+                                } else {
+                                    loadingBar.dismiss();
+                                    Toast.makeText(ChatActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         }));
                     }
                 });
@@ -237,6 +305,80 @@ public class ChatActivity extends AppCompatActivity {
         SimpleDateFormat currentTime = new SimpleDateFormat("hh:mm a");
         saveCurrentTime = currentTime.format(calendar.getTime());
     }
+
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//
+//        if (requestCode == 438 && data.getData() != null) {
+//            loadingBar.setTitle("Send File");
+//            loadingBar.setMessage("Please Wait...");
+//            loadingBar.setCanceledOnTouchOutside(false);
+//            loadingBar.show();
+//            fileUri = data.getData();
+//
+//            if (checker.equals("pdf")) {
+//                StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("Document Files");
+//
+//                final String messageSenderRef = "Messages/" + messageSenderID + "/" + messageReceiverID;
+//                final String messageReceiverRef = "Messages/" + messageReceiverID + "/" + messageSenderID;
+//
+//                DatabaseReference userMessageKeyRef = RootRef.child("Messages").child(messageSenderID).child(messageReceiverID).push();
+//                final String messagePushID = userMessageKeyRef.getKey();
+//
+//                final StorageReference filePath = storageReference.child(messagePushID + ".pdf");
+//
+//                uploadTask = filePath.putFile(fileUri);
+//
+//                uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+//                    @Override
+//                    public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+//                        if (!task.isSuccessful()) {
+//                            throw task.getException();
+//                        }
+//                        return filePath.getDownloadUrl();
+//                    }
+//                }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<Uri> task) {
+//                        if (task.isSuccessful()) {
+//                            Uri downloadUrl = task.getResult();
+//                            myUrl = downloadUrl.toString();
+//
+//                            Map<String, Object> messageDocBody = new HashMap<>();
+//                            messageDocBody.put("message", myUrl);
+//                            messageDocBody.put("name", fileUri.getLastPathSegment());
+//                            messageDocBody.put("type", checker);
+//                            messageDocBody.put("from", messageSenderID);
+//                            messageDocBody.put("to", messageReceiverID);
+//                            messageDocBody.put("messageID", messagePushID);
+//                            messageDocBody.put("time", saveCurrentTime);
+//                            messageDocBody.put("date", saveCurrentDate);
+//
+//                            Map<String, Object> messageBodyDetails = new HashMap<>();
+//                            messageBodyDetails.put(messageSenderRef + "/" + messagePushID, messageDocBody);
+//                            messageBodyDetails.put(messageReceiverRef + "/" + messagePushID, messageDocBody);
+//
+//                            RootRef.updateChildren(messageBodyDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+//                                @Override
+//                                public void onComplete(@NonNull Task<Void> task) {
+//                                    if (task.isSuccessful()) {
+//                                        loadingBar.dismiss();
+//                                        MessageInputText.setText("");
+//                                    } else {
+//                                        loadingBar.dismiss();
+//                                        Toast.makeText(ChatActivity.this, "Error", Toast.LENGTH_SHORT).show();
+//                                    }
+//                                }
+//                            });
+//                        }
+//                    }
+//                });
+//            }
+//
+//        }
+//    }
+
 
     private void DisplayLastSeen() {
         RootRef.child("Users").child(messageReceiverID).addValueEventListener(new ValueEventListener() {
@@ -353,12 +495,12 @@ public class ChatActivity extends AppCompatActivity {
             RootRef.updateChildren(messageBodyDetails)
                     .addOnCompleteListener(task -> {
 
-                if (task.isSuccessful()) {
-                    //Toast.makeText(ChatActivity.this,"Message Sent Successfully",Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(ChatActivity.this, "Error", Toast.LENGTH_SHORT).show();
-                }
-            });
+                        if (task.isSuccessful()) {
+                            //Toast.makeText(ChatActivity.this,"Message Sent Successfully",Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(ChatActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                        }
+                    });
             MessageInputText.setText("");
         }
     }
