@@ -1,17 +1,13 @@
 package com.example.myapplication.Activity.Screen.SingleChat;
 
-import static android.content.ContentValues.TAG;
-
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -32,8 +28,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication.Entity.Messages;
 import com.example.myapplication.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -43,8 +37,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.StorageTask;
-import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
@@ -59,14 +51,14 @@ import java.util.concurrent.Executors;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ChatActivity extends AppCompatActivity {
-    private String messageReceiverID, messageReceiverName, MessageReceiverImage, messageSenderID;
+    private String messageReceiverID, messageReceiverName, messageReceiverImage, messageSenderID;
     private TextView userName, userLastSeen;
     private CircleImageView userImage;
-    private Toolbar ChatToolBar;
-    private ImageButton SendMessageButton, SendFilesButton;
-    private EditText MessageInputText;
+    private Toolbar chatToolBar;
+    private ImageButton sendMessageButton, sendFilesButton;
+    private EditText messageInputText;
     private FirebaseAuth mAuth;
-    private DatabaseReference RootRef;
+    private DatabaseReference rootRef;
     private final List<Messages> messagesList = new ArrayList<>();
     private LinearLayoutManager linearLayoutManager;
     private MessageAdapter messageAdapter;
@@ -77,71 +69,74 @@ public class ChatActivity extends AppCompatActivity {
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Handler handler = new Handler(Looper.getMainLooper());
     private ChildEventListener messageEventListener;
+    private ActivityResultLauncher<Intent> startActivityForResult;
+    private ActivityResultLauncher<Intent> startActivityForPDFResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+        initializeFields();
+
+        userName.setText(messageReceiverName);
+        Picasso.get().load(messageReceiverImage).placeholder(R.drawable.profile_image).into(userImage);
+
+        sendMessageButton.setOnClickListener(view -> sendMessage());
+
+        displayLastSeen();
+
+        sendFilesButton.setOnClickListener(view -> sendFile());
+    }
+
+    private void initializeFields() {
         mAuth = FirebaseAuth.getInstance();
         messageSenderID = mAuth.getCurrentUser().getUid();
-        RootRef = FirebaseDatabase.getInstance().getReference();
+        rootRef = FirebaseDatabase.getInstance().getReference();
 
         messageReceiverID = getIntent().getExtras().get("visit_user_id").toString();
         messageReceiverName = getIntent().getExtras().get("visit_user_name").toString();
-        MessageReceiverImage = getIntent().getExtras().get("visit_image").toString();
+        messageReceiverImage = getIntent().getExtras().get("visit_image").toString();
 
-        initializeControllers();
+        // back button
+        chatToolBar = (Toolbar) findViewById(R.id.chat_toolbar);
+        setSupportActionBar(chatToolBar);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setDisplayShowCustomEnabled(true);
 
-        userName.setText(messageReceiverName);
-        Picasso.get().load(MessageReceiverImage).placeholder(R.drawable.profile_image).into(userImage);
+        LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View actionBarView = layoutInflater.inflate(R.layout.custom_chat_bar, null);
+        actionBar.setCustomView(actionBarView);
 
-        SendMessageButton.setOnClickListener(view -> SendMessage());
+        userImage = (CircleImageView) findViewById(R.id.custom_profile_image);
+        userName = (TextView) findViewById(R.id.custom_profile_name);
+        userLastSeen = (TextView) findViewById(R.id.custom_user_last_seen);
 
-        DisplayLastSeen();
+        sendMessageButton = (ImageButton) findViewById(R.id.send_message_btn);
 
-        ActivityResultLauncher<Intent> startActivityForResult = getImageFromGallery();
-        ActivityResultLauncher<Intent> startActivityForPDFResult = getPDFFromGallery();
+        sendFilesButton = (ImageButton) findViewById(R.id.send_files_btn);
 
-        SendFilesButton.setOnClickListener(view -> {
-            CharSequence options[] = new CharSequence[]
-                    {
-                            "Images",
-                            "Document"
-                    };
-            AlertDialog.Builder builder = new AlertDialog.Builder(ChatActivity.this);
-            builder.setTitle("Select the File");
+        messageInputText = (EditText) findViewById(R.id.input_message);
 
-            builder.setItems(options, (dialogInterface, i) -> {
-                if (i == 0) {
-                    checker = "image";
-                    Intent galleryIntent = new Intent();
-                    galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
-                    galleryIntent.setType("image/*");
-                    startActivityForResult.launch(galleryIntent);
-                }
-                if (i == 1) {
-                    // Code for selecting and sending documents (PDF in this case)
-                    checker = "pdf";
-                    Intent pdfIntent = new Intent();
-                    pdfIntent.setAction(Intent.ACTION_GET_CONTENT);
-                    pdfIntent.setType("application/pdf");
-
-                    startActivityForPDFResult.launch(pdfIntent);
-                }
-                if (i == 2) {
-                    checker = "docx";
-                    loadingBar.dismiss();
-                    Log.i(TAG, "onCreate: sida vcl");
-
-                    Toast.makeText(this, "Please Select", Toast.LENGTH_SHORT).show();
-                }
-            });
-
-            builder.show();
-        });
+        messageAdapter = new MessageAdapter(messagesList);
+        userMessagesList = (RecyclerView) findViewById(R.id.private_message_list_of_users);
+        linearLayoutManager = new LinearLayoutManager(this);
+        userMessagesList.setLayoutManager(linearLayoutManager);
+        userMessagesList.setAdapter(messageAdapter);
 
 
+        loadingBar = new ProgressDialog(this);
+
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat currentDate = new SimpleDateFormat("MMM dd , yyyy");
+        saveCurrentDate = currentDate.format(calendar.getTime());
+
+        SimpleDateFormat currentTime = new SimpleDateFormat("hh:mm a");
+        saveCurrentTime = currentTime.format(calendar.getTime());
+
+        startActivityForResult = getImageFromGallery();
+        startActivityForPDFResult = getPDFFromGallery();
     }
 
     private ActivityResultLauncher<Intent> getImageFromGallery() {
@@ -163,7 +158,7 @@ public class ChatActivity extends AppCompatActivity {
                         final String messageReceiverRef = "Messages/" + messageReceiverID + "/" + messageSenderID;
 
                         // push message
-                        DatabaseReference userMessageKeyRef = RootRef.child("Messages").child(messageSenderID).child(messageReceiverID).push();
+                        DatabaseReference userMessageKeyRef = rootRef.child("Messages").child(messageSenderID).child(messageReceiverID).push();
 
                         final String messagePushID = userMessageKeyRef.getKey();
 
@@ -192,7 +187,7 @@ public class ChatActivity extends AppCompatActivity {
                             messageBodyDetails.put(messageSenderRef + "/" + messagePushID, messagepicBody);
                             messageBodyDetails.put(messageReceiverRef + "/" + messagePushID, messagepicBody);
 
-                            RootRef.updateChildren(messageBodyDetails)
+                            rootRef.updateChildren(messageBodyDetails)
                                     .addOnCompleteListener(task1 -> {
                                         if (task1.isSuccessful()) {
                                             Toast.makeText(ChatActivity.this, "Message Sent Successfully", Toast.LENGTH_SHORT).show();
@@ -202,7 +197,7 @@ public class ChatActivity extends AppCompatActivity {
                                     });
 
                             loadingBar.dismiss();
-                            MessageInputText.setText("");
+                            messageInputText.setText("");
                         }));
                     }
                 });
@@ -227,7 +222,7 @@ public class ChatActivity extends AppCompatActivity {
                         final String messageSenderRef = "Messages/" + messageSenderID + "/" + messageReceiverID;
                         final String messageReceiverRef = "Messages/" + messageReceiverID + "/" + messageSenderID;
 
-                        DatabaseReference userMessageKeyRef = RootRef.child("Messages").child(messageSenderID).child(messageReceiverID).push();
+                        DatabaseReference userMessageKeyRef = rootRef.child("Messages").child(messageSenderID).child(messageReceiverID).push();
                         final String messagePushID = userMessageKeyRef.getKey();
 
                         final StorageReference filePath = storageReference.child(messagePushID + ".pdf");
@@ -251,10 +246,10 @@ public class ChatActivity extends AppCompatActivity {
                             messageBodyDetails.put(messageSenderRef + "/" + messagePushID, messageDocBody);
                             messageBodyDetails.put(messageReceiverRef + "/" + messagePushID, messageDocBody);
 
-                            RootRef.updateChildren(messageBodyDetails).addOnCompleteListener(task -> {
+                            rootRef.updateChildren(messageBodyDetails).addOnCompleteListener(task -> {
                                 if (task.isSuccessful()) {
                                     loadingBar.dismiss();
-                                    MessageInputText.setText("");
+                                    messageInputText.setText("");
                                 } else {
                                     loadingBar.dismiss();
                                     Toast.makeText(ChatActivity.this, "Error", Toast.LENGTH_SHORT).show();
@@ -265,48 +260,8 @@ public class ChatActivity extends AppCompatActivity {
                 });
     }
 
-    private void initializeControllers() {
-
-        // back button
-        ChatToolBar = (Toolbar) findViewById(R.id.chat_toolbar);
-        setSupportActionBar(ChatToolBar);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setDisplayShowCustomEnabled(true);
-
-        LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View actionBarView = layoutInflater.inflate(R.layout.custom_chat_bar, null);
-        actionBar.setCustomView(actionBarView);
-
-        userImage = (CircleImageView) findViewById(R.id.custom_profile_image);
-        userName = (TextView) findViewById(R.id.custom_profile_name);
-        userLastSeen = (TextView) findViewById(R.id.custom_user_last_seen);
-
-        SendMessageButton = (ImageButton) findViewById(R.id.send_message_btn);
-
-        SendFilesButton = (ImageButton) findViewById(R.id.send_files_btn);
-
-        MessageInputText = (EditText) findViewById(R.id.input_message);
-
-        messageAdapter = new MessageAdapter(messagesList);
-        userMessagesList = (RecyclerView) findViewById(R.id.private_message_list_of_users);
-        linearLayoutManager = new LinearLayoutManager(this);
-        userMessagesList.setLayoutManager(linearLayoutManager);
-        userMessagesList.setAdapter(messageAdapter);
-
-
-        loadingBar = new ProgressDialog(this);
-
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat currentDate = new SimpleDateFormat("MMM dd , yyyy");
-        saveCurrentDate = currentDate.format(calendar.getTime());
-
-        SimpleDateFormat currentTime = new SimpleDateFormat("hh:mm a");
-        saveCurrentTime = currentTime.format(calendar.getTime());
-    }
-
-    private void DisplayLastSeen() {
-        RootRef.child("Users").child(messageReceiverID).addValueEventListener(new ValueEventListener() {
+    private void displayLastSeen() {
+        rootRef.child("Users").child(messageReceiverID).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.child("userState").hasChild("state")) {
@@ -340,8 +295,8 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         // Remove post value event listener
-        if (messageEventListener != null && RootRef != null) {
-            RootRef.child("Messages").child(messageSenderID).child(messageReceiverID).removeEventListener(messageEventListener);
+        if (messageEventListener != null && rootRef != null) {
+            rootRef.child("Messages").child(messageSenderID).child(messageReceiverID).removeEventListener(messageEventListener);
         }
         super.onStop();
     }
@@ -349,7 +304,6 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG, "Hey, we are onStart!");
 
         // must clear message list first to prevent duplicate message
         messagesList.clear();
@@ -386,11 +340,11 @@ public class ChatActivity extends AppCompatActivity {
             }
         };
 
-        RootRef.child("Messages").child(messageSenderID).child(messageReceiverID).addChildEventListener(messageEventListener);
+        rootRef.child("Messages").child(messageSenderID).child(messageReceiverID).addChildEventListener(messageEventListener);
     }
 
-    private void SendMessage() {
-        String messageText = MessageInputText.getText().toString();
+    private void sendMessage() {
+        String messageText = messageInputText.getText().toString();
         if (TextUtils.isEmpty(messageText)) {
             Toast.makeText(this, "write message", Toast.LENGTH_SHORT).show();
         } else {
@@ -399,7 +353,7 @@ public class ChatActivity extends AppCompatActivity {
             String messageReceiverRef = "Messages/" + messageReceiverID + "/" + messageSenderID;
 
 
-            DatabaseReference userMessageKeyRef = RootRef.child("Messages").child(messageSenderID).child(messageReceiverID).push();
+            DatabaseReference userMessageKeyRef = rootRef.child("Messages").child(messageSenderID).child(messageReceiverID).push();
 
             String messagePushID = userMessageKeyRef.getKey();
 
@@ -417,7 +371,7 @@ public class ChatActivity extends AppCompatActivity {
             messageBodyDetails.put(messageSenderRef + "/" + messagePushID, messageTextBody);
             messageBodyDetails.put(messageReceiverRef + "/" + messagePushID, messageTextBody);
 
-            RootRef.updateChildren(messageBodyDetails)
+            rootRef.updateChildren(messageBodyDetails)
                     .addOnCompleteListener(task -> {
 
                         if (task.isSuccessful()) {
@@ -426,8 +380,45 @@ public class ChatActivity extends AppCompatActivity {
                             Toast.makeText(ChatActivity.this, "Error", Toast.LENGTH_SHORT).show();
                         }
                     });
-            MessageInputText.setText("");
+            messageInputText.setText("");
         }
+    }
+
+    private void sendFile() {
+        CharSequence options[] = new CharSequence[]
+                {
+                        "Images",
+                        "Document"
+                };
+        AlertDialog.Builder builder = new AlertDialog.Builder(ChatActivity.this);
+        builder.setTitle("Select the File");
+
+        builder.setItems(options, (dialogInterface, i) -> {
+            if (i == 0) {
+                checker = "image";
+                Intent galleryIntent = new Intent();
+                galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+                galleryIntent.setType("image/*");
+                startActivityForResult.launch(galleryIntent);
+            }
+            if (i == 1) {
+                // Code for selecting and sending documents (PDF in this case)
+                checker = "pdf";
+                Intent pdfIntent = new Intent();
+                pdfIntent.setAction(Intent.ACTION_GET_CONTENT);
+                pdfIntent.setType("application/pdf");
+
+                startActivityForPDFResult.launch(pdfIntent);
+            }
+            if (i == 2) {
+                checker = "docx";
+                loadingBar.dismiss();
+
+                Toast.makeText(this, "Please Select", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.show();
     }
 
 }
