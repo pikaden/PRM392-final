@@ -89,7 +89,6 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
         String messageSenderId = mAuth.getCurrentUser().getUid();
         final Messages messages = userMessagesList.get(position);
-        Log.i(TAG, "onBindViewHolder userMessagesList: " + userMessagesList);
 
         String fromUserID = messages.getFrom();
         String fromMessageType = messages.getType();
@@ -124,7 +123,6 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         messageViewHolder.senderMessageText.setVisibility(View.GONE);
         messageViewHolder.messageSenderPicture.setVisibility(View.GONE);
         messageViewHolder.messageReceiverPicture.setVisibility(View.GONE);
-
 
         if (fromMessageType.equals("text")) {
 
@@ -174,6 +172,15 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
                 });
             }
 
+        } else if (fromMessageType.equals("pdf")) {
+            if (fromUserID.equals(messageSenderId)) {
+                messageViewHolder.messageSenderPicture.setVisibility(View.VISIBLE);
+                messageViewHolder.messageSenderPicture.setBackgroundResource(R.drawable.pdf_icon);
+            } else {
+                messageViewHolder.receiverProfileImage.setVisibility(View.VISIBLE);
+                messageViewHolder.messageReceiverPicture.setVisibility(View.VISIBLE);
+                messageViewHolder.messageReceiverPicture.setBackgroundResource(R.drawable.pdf_icon);
+            }
         } else {
             if (fromUserID.equals(messageSenderId)) {
                 messageViewHolder.messageSenderPicture.setVisibility(View.VISIBLE);
@@ -378,12 +385,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         rootRef.child("Messages").child(userMessagesList.get(position).getFrom()).child(userMessagesList.get(position)
                 .getTo()).child(userMessagesList.get(position).getMessageID()).removeValue().addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(holder.itemView.getContext(), "Deleted Successfully", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(holder.itemView.getContext(), "Error", Toast.LENGTH_SHORT).show();
-                    }
-                });
+            if (task.isSuccessful()) {
+                Toast.makeText(holder.itemView.getContext(), "Deleted Successfully", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(holder.itemView.getContext(), "Error", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 
